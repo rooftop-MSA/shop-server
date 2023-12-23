@@ -1,0 +1,7 @@
+dependencies {
+    implementation "io.asyncer:r2dbc-mysql:${r2dbcMysqlVersion}"
+    implementation "mysql:mysql-connector-java:${mysqlConnectorVersion}"
+
+    testRuntimeOnly "com.h2database:h2"
+    testImplementation "io.r2dbc:r2dbc-h2"
+}
