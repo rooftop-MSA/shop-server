@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        kotlin-version: [ 1.9.10 ]
+        kotlin-version: [ 1.9.22 ]
         java-version: [ 21 ]
     steps:
       - name: checkout code
@@ -22,7 +22,7 @@ jobs:
           fetch-depth: 0
           submodules: true
 
-      - name: Set up JDK 21 and Kotlin 1.9.10
+      - name: Set up JDK 21 and Kotlin 1.9.22
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
