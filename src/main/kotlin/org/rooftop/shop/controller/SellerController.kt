@@ -19,6 +19,7 @@ class SellerController(
         @RequestHeader(HttpHeaders.AUTHORIZATION) token: String,
     ): Mono<Unit> = sellerService.registerSeller(token)
 
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(IllegalArgumentException::class)
     fun handleIllegalArgumentException(illegalArgumentException: IllegalArgumentException): Mono<ErrorRes> {
         return Mono.just(errorRes {
