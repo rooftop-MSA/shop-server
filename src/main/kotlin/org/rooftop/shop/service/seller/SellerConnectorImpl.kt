@@ -1,4 +1,4 @@
-package org.rooftop.shop.service
+package org.rooftop.shop.service.seller
 
 import org.rooftop.shop.domain.seller.SellerConnector
 import org.rooftop.shop.domain.seller.SellerRepository
