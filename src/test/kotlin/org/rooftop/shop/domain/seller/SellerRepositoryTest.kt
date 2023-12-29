@@ -3,7 +3,7 @@ package org.rooftop.shop.domain.seller
 import io.kotest.core.annotation.DisplayName
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.extensions.spring.SpringExtension
-import io.kotest.matchers.equality.shouldBeEqualUsingFields
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import org.rooftop.shop.infra.R2dbcConfig
 import org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest
 import org.springframework.data.r2dbc.config.EnableR2dbcAuditing
@@ -33,7 +33,11 @@ internal class SellerRepositoryTest(private val sellerRepository: SellerReposito
 
                 StepVerifier.create(result)
                     .assertNext { savedSeller ->
-                        savedSeller shouldBeEqualUsingFields expected
+                        savedSeller.shouldBeEqualToIgnoringFields(
+                            expected,
+                            Seller::modifiedAt,
+                            Seller::createdAt
+                        )
                     }
                     .verifyComplete()
             }
