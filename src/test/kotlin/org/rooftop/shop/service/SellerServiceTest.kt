@@ -5,9 +5,10 @@ import io.kotest.core.annotation.DisplayName
 import io.kotest.core.spec.style.DescribeSpec
 import io.mockk.every
 import org.rooftop.shop.domain.IdGenerator
-import org.rooftop.shop.domain.SellerRepository
+import org.rooftop.shop.domain.seller.SellerRepository
 import org.rooftop.shop.domain.UserApi
-import org.rooftop.shop.domain.seller
+import org.rooftop.shop.domain.seller.seller
+import org.rooftop.shop.service.seller.SellerService
 import org.springframework.test.context.ContextConfiguration
 import reactor.core.publisher.Mono
 import reactor.test.StepVerifier
