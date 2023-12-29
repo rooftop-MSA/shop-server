@@ -29,6 +29,17 @@ internal class IntegrationTest(
                 result.expectStatus().isOk
             }
         }
+
+        context("가입되지 않은 유저가 판매자 등록을 요청 할 경우,") {
+
+            mockIdentityServer.enqueue400BadRequest()
+
+            it("판매자 등록을 실패하고, 400 Bad Request를 반환한다.") {
+                val result = webTestClient.registerSeller(AUTHORIZED_TOKEN)
+
+                result.expectStatus().isBadRequest
+            }
+        }
     }
 }) {
 
