@@ -4,5 +4,5 @@ import reactor.core.publisher.Mono
 
 fun interface SellerConnector {
 
-    fun existsSellerByUserId(userId: Long): Mono<Boolean>
+    fun findSellerByUserId(userId: Long): Mono<Seller>
 }

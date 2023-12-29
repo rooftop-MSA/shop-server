@@ -3,6 +3,7 @@ package org.rooftop.shop.domain.seller
 import io.kotest.core.annotation.DisplayName
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.extensions.spring.SpringExtension
+import io.kotest.matchers.equality.shouldBeEqualUsingFields
 import org.rooftop.shop.infra.R2dbcConfig
 import org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest
 import org.springframework.data.r2dbc.config.EnableR2dbcAuditing
@@ -21,30 +22,31 @@ internal class SellerRepositoryTest(private val sellerRepository: SellerReposito
         sellerRepository.deleteAll().block()
     }
 
-    describe("existsByUserId 메소드는") {
-        context("userId에 해당하는 user가 존재한다면,") {
+    describe("findByUserId 메소드는") {
+        context("userId에 해당하는 seller가 존재한다면,") {
 
-            val existsSeller = seller()
-            sellerRepository.save(existsSeller).block()
+            val expected = seller()
+            sellerRepository.save(expected).block()
 
-            it("true를 반환한다.") {
-                val result = sellerRepository.existsByUserId(existsSeller.userId)
+            it("seller를 반환한다.") {
+                val result = sellerRepository.findByUserId(expected.userId)
 
                 StepVerifier.create(result)
-                    .expectNext(true)
+                    .assertNext { savedSeller ->
+                        savedSeller shouldBeEqualUsingFields expected
+                    }
                     .verifyComplete()
             }
         }
 
-        context("userId에 해당하는 user가 없다면,") {
+        context("userId에 해당하는 seller가 없다면,") {
 
             val notExistSeller = seller()
 
-            it("false를 반환한다.") {
-                val result = sellerRepository.existsByUserId(notExistSeller.userId)
+            it("empty를 반환한다.") {
+                val result = sellerRepository.findByUserId(notExistSeller.userId)
 
                 StepVerifier.create(result)
-                    .expectNext(false)
                     .verifyComplete()
             }
         }

@@ -1,5 +1,6 @@
 package org.rooftop.shop.service.seller
 
+import org.rooftop.shop.domain.seller.Seller
 import org.rooftop.shop.domain.seller.SellerConnector
 import org.rooftop.shop.domain.seller.SellerRepository
 import org.springframework.stereotype.Service
@@ -12,6 +13,6 @@ class SellerConnectorImpl(
     private val sellerRepository: SellerRepository,
 ) : SellerConnector {
 
-    override fun existsSellerByUserId(userId: Long): Mono<Boolean> =
-        sellerRepository.existsByUserId(userId)
+    override fun findSellerByUserId(userId: Long): Mono<Seller> =
+        sellerRepository.findByUserId(userId)
 }
