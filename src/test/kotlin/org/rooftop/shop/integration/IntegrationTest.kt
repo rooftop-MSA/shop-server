@@ -7,6 +7,7 @@ import org.rooftop.api.shop.productRegisterReq
 import org.rooftop.shop.infra.MockIdentityServer
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.data.r2dbc.core.R2dbcEntityTemplate
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.web.reactive.server.WebTestClient
 
@@ -17,7 +18,12 @@ import org.springframework.test.web.reactive.server.WebTestClient
 internal class IntegrationTest(
     private val webTestClient: WebTestClient,
     private val mockIdentityServer: MockIdentityServer,
+    private val r2dbcEntityTemplate: R2dbcEntityTemplate,
 ) : DescribeSpec({
+
+    afterEach {
+        r2dbcEntityTemplate.clearAll()
+    }
 
     describe("판매자 등록 api는") {
         context("가입된 유저가 판매자 등록을 요청 할 경우,") {
@@ -47,11 +53,24 @@ internal class IntegrationTest(
         context("seller가 상품 등록을 요청할 경우,") {
 
             mockIdentityServer.enqueue(userGetByTokenRes)
+            webTestClient.registerSeller(AUTHORIZED_TOKEN)
+            mockIdentityServer.enqueue(userGetByTokenRes)
 
             it("상품 등록을 성공하고 200OK를 반환한다.") {
                 val result = webTestClient.registerProduct(AUTHORIZED_TOKEN, productRegisterReq)
 
                 result.expectStatus().isOk
+            }
+        }
+
+        context("등록되지 않은 seller가 상품 등록을 요청할 경우,") {
+
+            mockIdentityServer.enqueue(userGetByTokenRes)
+
+            it("400 Bad Request를 반환한다.") {
+                val result = webTestClient.registerProduct(UNAUTHORIZED_TOKEN, productRegisterReq)
+
+                result.expectStatus().isBadRequest
             }
         }
     }
