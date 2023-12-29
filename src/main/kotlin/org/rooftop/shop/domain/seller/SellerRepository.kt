@@ -1,4 +1,4 @@
-package org.rooftop.shop.domain
+package org.rooftop.shop.domain.seller
 
 import org.springframework.data.r2dbc.repository.R2dbcRepository
 

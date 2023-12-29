@@ -1,5 +1,6 @@
-package org.rooftop.shop.domain
+package org.rooftop.shop.domain.seller
 
+import org.rooftop.shop.domain.BaseEntity
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table

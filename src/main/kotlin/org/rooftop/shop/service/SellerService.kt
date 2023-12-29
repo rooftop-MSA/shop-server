@@ -1,8 +1,8 @@
 package org.rooftop.shop.service
 
 import org.rooftop.shop.domain.IdGenerator
-import org.rooftop.shop.domain.Seller
-import org.rooftop.shop.domain.SellerRepository
+import org.rooftop.shop.domain.seller.Seller
+import org.rooftop.shop.domain.seller.SellerRepository
 import org.rooftop.shop.domain.UserApi
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

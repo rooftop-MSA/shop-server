@@ -1,4 +1,6 @@
-package org.rooftop.shop.domain
+package org.rooftop.shop.domain.seller
+
+import org.rooftop.shop.domain.seller.Seller
 
 fun seller(
     id: Long = 0L,
