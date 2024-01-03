@@ -2,10 +2,7 @@ package org.rooftop.shop.controller.product
 
 import org.rooftop.api.identity.ErrorRes
 import org.rooftop.api.identity.errorRes
-import org.rooftop.api.shop.ProductRegisterReq
-import org.rooftop.api.shop.ProductsRes
-import org.rooftop.api.shop.ProductsResKt
-import org.rooftop.api.shop.productsRes
+import org.rooftop.api.shop.*
 import org.rooftop.shop.service.product.ProductService
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -40,7 +37,7 @@ class ProductController(
                 this.title = it.title
                 this.description = it.description
                 this.price = it.price
-                this.quantity = it.quantity
+                this.quantity = it.getQuantity()
             }
         }
         .collectList()
@@ -49,6 +46,10 @@ class ProductController(
                 this.products.addAll(it)
             }
         }
+
+    @PostMapping("/v1/products/consumes")
+    fun consumeProduct(@RequestBody productConsumeReq: ProductConsumeReq): Mono<Unit> =
+        productService.consumeProduct(productConsumeReq)
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(IllegalArgumentException::class)

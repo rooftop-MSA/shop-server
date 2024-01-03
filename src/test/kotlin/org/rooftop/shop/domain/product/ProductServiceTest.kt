@@ -4,7 +4,10 @@ import com.ninjasquad.springmockk.MockkBean
 import io.kotest.core.annotation.DisplayName
 import io.kotest.core.spec.style.DescribeSpec
 import io.mockk.every
+import io.mockk.verify
+import org.rooftop.api.shop.productConsumeReq
 import org.rooftop.api.shop.productRegisterReq
+import org.rooftop.shop.domain.DistributeTransactionable
 import org.rooftop.shop.domain.IdGenerator
 import org.rooftop.shop.domain.UserApi
 import org.rooftop.shop.domain.seller.SellerConnector
@@ -22,6 +25,7 @@ internal class ProductServiceTest(
     @MockkBean private val idGenerator: IdGenerator,
     @MockkBean private val sellerConnector: SellerConnector,
     @MockkBean private val productRepository: ProductRepository,
+    @MockkBean private val distributeTransaction: DistributeTransactionable<Product>,
 ) : DescribeSpec({
 
     every { idGenerator.generate() } returns 1L
@@ -66,6 +70,64 @@ internal class ProductServiceTest(
                 StepVerifier.create(result)
                     .expectErrorMessage("User not registered seller")
                     .verify()
+            }
+        }
+    }
+
+    describe("consumeProduct 메소드는") {
+        context("구매에 성공하면,") {
+
+            val product = product()
+            val transactionId = 1L
+            val quantity = product.getQuantity()
+            val productConsumeReq = productConsumeReq {
+                this.transactionId = transactionId
+                this.productId = product.id
+                this.consumeQuantity = quantity
+            }
+
+            every { productRepository.findById(product.id) } returns Mono.just(product)
+            every { productRepository.save(product) } returns Mono.just(product)
+            every { distributeTransaction.join(transactionId, product) } returns Mono.empty()
+            every { distributeTransaction.commit(transactionId) } returns Mono.empty()
+
+            it("분산 트랜잭션을 commit 한다.") {
+                val result = productService.consumeProduct(productConsumeReq)
+
+                StepVerifier.create(result)
+                    .assertNext {
+                        verify(exactly = 1) { distributeTransaction.commit(transactionId) }
+                        verify(exactly = 0) { distributeTransaction.rollback(transactionId) }
+                    }
+                    .verifyComplete()
+            }
+        }
+
+        context("구매에 실패하면,") {
+
+            val product = product()
+            val transactionId = 2L
+            val exceedQuantity = product.getQuantity() + 1
+            val productConsumeReq = productConsumeReq {
+                this.transactionId = transactionId
+                this.productId = product.id
+                this.consumeQuantity = exceedQuantity
+            }
+
+            every { productRepository.findById(product.id) } returns Mono.just(product)
+            every { productRepository.save(product) } returns Mono.just(product)
+            every { distributeTransaction.join(transactionId, product) } returns Mono.empty()
+            every { distributeTransaction.rollback(transactionId) } returns Mono.empty()
+
+            it("분산 트랜잭션을 rollback 한다.") {
+                val result = productService.consumeProduct(productConsumeReq)
+
+                StepVerifier.create(result)
+                    .then {
+                        verify(exactly = 0) { distributeTransaction.commit(transactionId) }
+                        verify(exactly = 1) { distributeTransaction.rollback(transactionId) }
+                    }
+                    .verifyError()
             }
         }
     }
