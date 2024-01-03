@@ -23,3 +23,15 @@ internal fun WebTestClient.registerProduct(
         .bodyValue(productRegisterReq)
         .exchange()
 }
+
+internal fun WebTestClient.getProducts(): WebTestClient.ResponseSpec {
+    return this.get()
+        .uri("$VERSION/products")
+        .exchange()
+}
+
+internal fun WebTestClient.getProducts(lastProductId: Long): WebTestClient.ResponseSpec {
+    return this.get()
+        .uri("$VERSION/products?last-product-id=$lastProductId")
+        .exchange()
+}
