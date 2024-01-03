@@ -133,13 +133,10 @@ internal class IntegrationTest(
     }
 
     describe("상품 재고 차감 API는") {
+        context("productId에 해당하는 상품의 quantity가 차감할 quantity보다 크거나 같다면,") {
 
-        beforeEach {
             registerSeller(mockIdentityServer, webTestClient)
             registerProducts(1, mockIdentityServer, webTestClient)
-        }
-
-        context("productId에 해당하는 상품의 quantity가 차감할 quantity보다 크거나 같다면,") {
 
             val productId = webTestClient.getProducts()
                 .expectBody(ProductsRes::class.java)
@@ -159,7 +156,10 @@ internal class IntegrationTest(
             }
         }
 
-        context("productId에 해당하는 상품의 quantity가 차감할 quantity보다 적다면,") {
+        context("productId에 해당하는 상품의 quantity보다 많은 수를 차감하려 한다면,") {
+
+            registerSeller(mockIdentityServer, webTestClient)
+            registerProducts(1, mockIdentityServer, webTestClient)
 
             val productId = webTestClient.getProducts()
                 .expectBody(ProductsRes::class.java)
@@ -169,6 +169,7 @@ internal class IntegrationTest(
             val productConsumeReq = productConsumeReq {
                 this.transactionId = 1L
                 this.productId = productId
+                this.consumeQuantity = productRegisterReq.quantity + 1
             }
 
             it("해당 상품 구매를 실패하고, 400 Bad Request 를 반환한다.") {

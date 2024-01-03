@@ -1,5 +1,6 @@
 package org.rooftop.shop.service.product
 
+import org.rooftop.api.shop.ProductConsumeReq
 import org.rooftop.api.shop.ProductRegisterReq
 import org.rooftop.shop.domain.DistributeTransactionable
 import org.rooftop.shop.domain.IdGenerator
@@ -56,16 +57,16 @@ class ProductService(
     }
 
     @Transactional
-    fun consumeProduct(transactionId: Long, productId: Long, quantity: Long): Mono<Unit> {
-        return productRepository.findById(productId)
+    fun consumeProduct(productConsumeReq: ProductConsumeReq): Mono<Unit> {
+        return productRepository.findById(productConsumeReq.productId)
             .switchIfEmpty(
-                Mono.error { throw IllegalArgumentException("Cannot find product \"$productId\"") }
+                Mono.error { throw IllegalArgumentException("Cannot find product \"${productConsumeReq.productId}\"") }
             )
-            .doOnNext { distributeTransaction.join(transactionId, it) }
-            .doOnNext { it.consumeQuantity(quantity) }
+            .doOnNext { distributeTransaction.join(productConsumeReq.transactionId, it) }
+            .doOnNext { it.consumeQuantity(productConsumeReq.consumeQuantity) }
             .flatMap { productRepository.save(it) }
-            .doOnSuccess { distributeTransaction.commit(transactionId) }
-            .doOnError { distributeTransaction.rollback(transactionId) }
+            .doOnSuccess { distributeTransaction.commit(productConsumeReq.transactionId) }
+            .doOnError { distributeTransaction.rollback(productConsumeReq.transactionId) }
             .map { }
     }
 }

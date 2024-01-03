@@ -5,6 +5,7 @@ import io.kotest.core.annotation.DisplayName
 import io.kotest.core.spec.style.DescribeSpec
 import io.mockk.every
 import io.mockk.verify
+import org.rooftop.api.shop.productConsumeReq
 import org.rooftop.api.shop.productRegisterReq
 import org.rooftop.shop.domain.DistributeTransactionable
 import org.rooftop.shop.domain.IdGenerator
@@ -79,6 +80,11 @@ internal class ProductServiceTest(
             val product = product()
             val transactionId = 1L
             val quantity = product.getQuantity()
+            val productConsumeReq = productConsumeReq {
+                this.transactionId = transactionId
+                this.productId = product.id
+                this.consumeQuantity = quantity
+            }
 
             every { productRepository.findById(product.id) } returns Mono.just(product)
             every { productRepository.save(product) } returns Mono.just(product)
@@ -86,7 +92,7 @@ internal class ProductServiceTest(
             every { distributeTransaction.commit(transactionId) } returns Mono.empty()
 
             it("분산 트랜잭션을 commit 한다.") {
-                val result = productService.consumeProduct(transactionId, product.id, quantity)
+                val result = productService.consumeProduct(productConsumeReq)
 
                 StepVerifier.create(result)
                     .assertNext {
@@ -102,6 +108,11 @@ internal class ProductServiceTest(
             val product = product()
             val transactionId = 2L
             val exceedQuantity = product.getQuantity() + 1
+            val productConsumeReq = productConsumeReq {
+                this.transactionId = transactionId
+                this.productId = product.id
+                this.consumeQuantity = exceedQuantity
+            }
 
             every { productRepository.findById(product.id) } returns Mono.just(product)
             every { productRepository.save(product) } returns Mono.just(product)
@@ -109,8 +120,7 @@ internal class ProductServiceTest(
             every { distributeTransaction.rollback(transactionId) } returns Mono.empty()
 
             it("분산 트랜잭션을 rollback 한다.") {
-                val result =
-                    productService.consumeProduct(transactionId, product.id, exceedQuantity)
+                val result = productService.consumeProduct(productConsumeReq)
 
                 StepVerifier.create(result)
                     .then {

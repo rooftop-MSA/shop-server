@@ -50,7 +50,7 @@ class Product(
 
     fun consumeQuantity(quantity: Long) {
         this.quantity -= quantity
-        assert(this.quantity >= 0) {
+        require(this.quantity >= 0) {
             "quantity must be greater than zero. current quantity is \"${this.quantity}\""
         }
     }
