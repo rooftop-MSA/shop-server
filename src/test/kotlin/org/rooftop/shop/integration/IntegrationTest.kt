@@ -4,10 +4,7 @@ import io.kotest.core.annotation.DisplayName
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import org.rooftop.api.identity.userGetByTokenRes
-import org.rooftop.api.shop.ProductsRes
-import org.rooftop.api.shop.ProductsResKt
-import org.rooftop.api.shop.productRegisterReq
-import org.rooftop.api.shop.productsRes
+import org.rooftop.api.shop.*
 import org.rooftop.shop.infra.MockIdentityServer
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
@@ -133,6 +130,54 @@ internal class IntegrationTest(
                     )
             }
         }
+    }
+
+    describe("상품 재고 차감 API는") {
+
+        beforeEach {
+            registerSeller(mockIdentityServer, webTestClient)
+            registerProducts(1, mockIdentityServer, webTestClient)
+        }
+
+        context("productId에 해당하는 상품의 quantity가 차감할 quantity보다 크거나 같다면,") {
+
+            val productId = webTestClient.getProducts()
+                .expectBody(ProductsRes::class.java)
+                .returnResult()
+                .responseBody!!.getProducts(0).id
+
+            val productConsumeReq = productConsumeReq {
+                this.transactionId = 1L
+                this.productId = productId
+                this.consumeQuantity = 100
+            }
+
+            it("해당 상품 구매에 성공하고 200 OK 를 반환한다.") {
+                val result = webTestClient.consumeProducts(productConsumeReq)
+
+                result.expectStatus().isOk
+            }
+        }
+
+        context("productId에 해당하는 상품의 quantity가 차감할 quantity보다 적다면,") {
+
+            val productId = webTestClient.getProducts()
+                .expectBody(ProductsRes::class.java)
+                .returnResult()
+                .responseBody!!.getProducts(0).id
+
+            val productConsumeReq = productConsumeReq {
+                this.transactionId = 1L
+                this.productId = productId
+            }
+
+            it("해당 상품 구매를 실패하고, 400 Bad Request 를 반환한다.") {
+                val result = webTestClient.consumeProducts(productConsumeReq)
+
+                result.expectStatus().isBadRequest
+            }
+        }
+
     }
 }) {
 

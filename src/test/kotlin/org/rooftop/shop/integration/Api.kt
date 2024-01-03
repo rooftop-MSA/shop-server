@@ -1,5 +1,6 @@
 package org.rooftop.shop.integration
 
+import org.rooftop.api.shop.ProductConsumeReq
 import org.rooftop.api.shop.ProductRegisterReq
 import org.springframework.http.HttpHeaders
 import org.springframework.test.web.reactive.server.WebTestClient
@@ -33,5 +34,12 @@ internal fun WebTestClient.getProducts(): WebTestClient.ResponseSpec {
 internal fun WebTestClient.getProducts(lastProductId: Long): WebTestClient.ResponseSpec {
     return this.get()
         .uri("$VERSION/products?last-product-id=$lastProductId")
+        .exchange()
+}
+
+internal fun WebTestClient.consumeProducts(productConsumeReq: ProductConsumeReq): WebTestClient.ResponseSpec {
+    return this.post()
+        .uri("$VERSION/products/consumes")
+        .bodyValue(productConsumeReq)
         .exchange()
 }
