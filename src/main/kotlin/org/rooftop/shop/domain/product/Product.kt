@@ -26,7 +26,7 @@ class Product(
     val price: Long,
 
     @Column("quantity")
-    val quantity: Long,
+    private var quantity: Long,
 
     @Version
     private var version: Int? = null,
@@ -45,5 +45,14 @@ class Product(
     ) : this(id, sellerId, title, description, price, quantity, isNew = false)
 
     override fun getId(): Long = id
+
+    fun getQuantity(): Long = quantity;
+
+    fun consumeQuantity(quantity: Long) {
+        this.quantity -= quantity
+        assert(this.quantity >= 0) {
+            "quantity must be greater than zero. current quantity is \"${this.quantity}\""
+        }
+    }
 
 }

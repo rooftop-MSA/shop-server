@@ -40,7 +40,7 @@ class ProductController(
                 this.title = it.title
                 this.description = it.description
                 this.price = it.price
-                this.quantity = it.quantity
+                this.quantity = it.getQuantity()
             }
         }
         .collectList()
