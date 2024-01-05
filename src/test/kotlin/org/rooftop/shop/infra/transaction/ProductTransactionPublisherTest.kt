@@ -47,16 +47,58 @@ internal class ProductTransactionPublisherTest(
     }
 
     describe("commit 메소드는") {
-        context("transactionId를 받으면,") {
+        context("transactionId에 해당하는 transaction에 join한 적이 있으면,") {
+
+            val transactionId = transactionIdGenerator.generate()
+            transactionPublisher.join(transactionId, undoProduct()).block()
+
+            it("transactionServer에 COMMIT 상태의 트랜잭션을 publish 한다.") {
+                val result = transactionPublisher.commit(transactionId).log()
+
+                StepVerifier.create(result)
+                    .expectNext(Unit)
+                    .verifyComplete()
+            }
+        }
+
+        context("transactionId에 해당하는 transaction에 join한 적이 없으면,") {
 
             val transactionId = transactionIdGenerator.generate()
 
-            it("transactionServer에 COMMIT 상태의 트랜잭션을 publish 한다.") {
-                val result = transactionPublisher.commit(transactionId)
-                    .log()
+            it("IllegalStateException 을 던진다.") {
+                val result = transactionPublisher.commit(transactionId).log()
 
                 StepVerifier.create(result)
+                    .verifyErrorMessage("Cannot find opened transaction id \"$transactionId\"")
+            }
+
+        }
+    }
+
+    describe("rollback 메소드는") {
+        context("transactionId에 해당하는 transaction에 join한 적이 있으면,") {
+
+            val transactionId = transactionIdGenerator.generate()
+            transactionPublisher.join(transactionId, undoProduct()).block()
+
+            it("transactionServer에 ROLLBACK 상태의 트랜잭션을 publish 한다.") {
+                val result = transactionPublisher.rollback(transactionId).log()
+
+                StepVerifier.create(result)
+                    .expectNext(Unit)
                     .verifyComplete()
+            }
+        }
+
+        context("transactionId에 해당하는 transaction에 join한 적이 없으면,") {
+
+            val transactionId = transactionIdGenerator.generate()
+
+            it("IllegalStateException을 던진다.") {
+                val result = transactionPublisher.rollback(transactionId).log()
+
+                StepVerifier.create(result)
+                    .verifyErrorMessage("Cannot find opened transaction id \"$transactionId\"")
             }
         }
     }

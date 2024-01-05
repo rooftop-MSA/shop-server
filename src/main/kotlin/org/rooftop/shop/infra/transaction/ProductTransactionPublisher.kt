@@ -7,6 +7,7 @@ import org.rooftop.shop.domain.TransactionPublisher
 import org.rooftop.shop.domain.product.UndoProduct
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.data.domain.Range
 import org.springframework.data.redis.connection.stream.Record
 import org.springframework.data.redis.core.ReactiveRedisTemplate
 import org.springframework.stereotype.Service
@@ -60,19 +61,45 @@ class ProductTransactionPublisher(
     }
 
     override fun commit(transactionId: String): Mono<Unit> {
-        return publishTransaction(transactionId, transaction {
-            id = transactionId
-            serverId = transactionServerId
-            state = TransactionState.COMMIT
-        }).map { }
+        return findOpenedTransaction(transactionId)
+            .publishTransaction(transaction {
+                id = transactionId
+                serverId = transactionServerId
+                state = TransactionState.COMMIT
+            })
+            .contextWrite { it.put("transactionId", transactionId) }
+            .map { }
     }
 
     override fun rollback(transactionId: String): Mono<Unit> {
-        return publishTransaction(transactionId, transaction {
-            id = transactionId
-            serverId = transactionServerId
-            state = TransactionState.ROLLBACK
-        }).map { }
+        return findOpenedTransaction(transactionId)
+            .publishTransaction(transaction {
+                id = transactionId
+                serverId = transactionServerId
+                state = TransactionState.ROLLBACK
+            })
+            .contextWrite { it.put("transactionId", transactionId) }
+            .map { }
+    }
+
+    private fun findOpenedTransaction(transactionId: String): Mono<String> {
+        return transactionServer.opsForStream<String, ByteArray>()
+            .range(transactionId, Range.open("-", "+"))
+            .map { Transaction.parseFrom(it.value[DATA].toString().toByteArray()) }
+            .filter { it.serverId == transactionServerId }
+            .next()
+            .switchIfEmpty(
+                Mono.error {
+                    IllegalStateException("Cannot find opened transaction id \"$transactionId\"")
+                }
+            )
+            .transformTransactionId()
+    }
+
+    private fun Mono<String>.publishTransaction(transaction: Transaction): Mono<String> {
+        return this.flatMap {
+            publishTransaction(it, transaction)
+        }
     }
 
     private fun publishTransaction(transactionId: String, transaction: Transaction): Mono<String> {
