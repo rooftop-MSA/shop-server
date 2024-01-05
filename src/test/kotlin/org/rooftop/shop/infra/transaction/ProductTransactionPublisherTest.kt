@@ -45,5 +45,20 @@ internal class ProductTransactionPublisherTest(
             }
         }
     }
+
+    describe("commit 메소드는") {
+        context("transactionId를 받으면,") {
+
+            val transactionId = transactionIdGenerator.generate()
+
+            it("transactionServer에 COMMIT 상태의 트랜잭션을 publish 한다.") {
+                val result = transactionPublisher.commit(transactionId)
+                    .log()
+
+                StepVerifier.create(result)
+                    .verifyComplete()
+            }
+        }
+    }
 }) {
 }

@@ -49,6 +49,7 @@ internal class RedisPlayGround(
                     .assertNext {
                         it shouldBeEqualUsingFields transaction {
                             id = expectedTransactionId
+                            serverId = TRANSACTION_SERVER_ID
                             state = TransactionState.JOIN
                         }
                     }
@@ -61,6 +62,7 @@ internal class RedisPlayGround(
 
     companion object {
         private const val STREAM_KEY = "ROOFTOP_TRANSACTION"
+        private const val TRANSACTION_SERVER_ID = "product-1"
         private const val TRANSACTION_KEY = "TRANSACTION_KEY"
 
         private fun Mono<String>.joinOrCreateTransaction(transactionServer: ReactiveRedisTemplate<String, ByteArray>): Mono<RecordId> {
@@ -69,6 +71,7 @@ internal class RedisPlayGround(
                     .add(
                         Record.of<String?, String?, ByteArray?>(mapOf(TRANSACTION_KEY to transaction {
                             id = transactionId
+                            serverId = TRANSACTION_SERVER_ID
                             this.state = TransactionState.JOIN
                         }.toByteArray())).withStreamKey(transactionId)
                     )
