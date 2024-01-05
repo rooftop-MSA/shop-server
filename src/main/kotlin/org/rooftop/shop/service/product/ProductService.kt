@@ -2,11 +2,12 @@ package org.rooftop.shop.service.product
 
 import org.rooftop.api.shop.ProductConsumeReq
 import org.rooftop.api.shop.ProductRegisterReq
-import org.rooftop.shop.domain.DistributeTransactionable
 import org.rooftop.shop.domain.IdGenerator
+import org.rooftop.shop.domain.TransactionPublisher
 import org.rooftop.shop.domain.UserApi
 import org.rooftop.shop.domain.product.Product
 import org.rooftop.shop.domain.product.ProductRepository
+import org.rooftop.shop.domain.product.UndoProduct
 import org.rooftop.shop.domain.seller.SellerConnector
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -20,7 +21,7 @@ class ProductService(
     private val idGenerator: IdGenerator,
     private val sellerConnector: SellerConnector,
     private val productRepository: ProductRepository,
-    private val distributeTransaction: DistributeTransactionable<Product>,
+    private val transactionPublisher: TransactionPublisher<UndoProduct>,
 ) {
 
     @Transactional
@@ -58,15 +59,6 @@ class ProductService(
 
     @Transactional
     fun consumeProduct(productConsumeReq: ProductConsumeReq): Mono<Unit> {
-        return productRepository.findById(productConsumeReq.productId)
-            .switchIfEmpty(
-                Mono.error { throw IllegalArgumentException("Cannot find product \"${productConsumeReq.productId}\"") }
-            )
-            .doOnNext { distributeTransaction.join(productConsumeReq.transactionId, it) }
-            .doOnNext { it.consumeQuantity(productConsumeReq.consumeQuantity) }
-            .flatMap { productRepository.save(it) }
-            .doOnSuccess { distributeTransaction.commit(productConsumeReq.transactionId) }
-            .doOnError { distributeTransaction.rollback(productConsumeReq.transactionId) }
-            .map { }
+        return Mono.empty()
     }
 }

@@ -32,8 +32,15 @@ class ReactiveRedisConfigurer(
     }
 
     @Bean("transactionServerConnectionFactory")
-    fun transactionServerConnectionFactory(): ReactiveRedisConnectionFactory =
-        LettuceConnectionFactory(transactionServerHost, transactionServerPort.toInt())
+    fun transactionServerConnectionFactory(): ReactiveRedisConnectionFactory {
+        val transactionServerPort: String =
+            System.getProperty("distributed.transaction.port.transaction-server")
+                ?: transactionServerPort
+
+        return LettuceConnectionFactory(
+            transactionServerHost, transactionServerPort.toInt()
+        )
+    }
 
     @Bean("undoServer")
     fun undoServer(): ReactiveRedisTemplate<String, UndoProduct> {
@@ -49,7 +56,12 @@ class ReactiveRedisConfigurer(
     }
 
     @Bean("undoServerConnectionFactory")
-    fun undoServerConnectionFactory(): ReactiveRedisConnectionFactory =
-        LettuceConnectionFactory(undoServerHost, undoServerPort.toInt())
+    fun undoServerConnectionFactory(): ReactiveRedisConnectionFactory {
+        val undoServerPort: String =
+            System.getProperty("distributed.transaction.port.undo-server")
+                ?: undoServerPort
+
+        return LettuceConnectionFactory(undoServerHost, undoServerPort.toInt())
+    }
 
 }
