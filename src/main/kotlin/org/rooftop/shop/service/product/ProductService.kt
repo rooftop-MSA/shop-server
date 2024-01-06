@@ -59,6 +59,28 @@ class ProductService(
 
     @Transactional
     fun consumeProduct(productConsumeReq: ProductConsumeReq): Mono<Unit> {
-        return Mono.empty()
+        return transactionPublisher.join(
+            productConsumeReq.transactionId.toString(),
+            UndoProduct(productConsumeReq.productId, productConsumeReq.consumeQuantity)
+        ).flatMap {
+            productRepository.findById(productConsumeReq.productId)
+                .switchIfEmpty(
+                    Mono.error {
+                        IllegalStateException("Cannot find product id \"${productConsumeReq.productId}\"")
+                    }
+                )
+                .map {
+                    it.consumeQuantity(productConsumeReq.consumeQuantity)
+                    it
+                }
+                .flatMap {
+                    productRepository.save(it)
+                }
+        }.flatMap {
+            transactionPublisher.commit(productConsumeReq.transactionId.toString())
+        }.onErrorResume {
+            transactionPublisher.rollback(productConsumeReq.transactionId.toString())
+            Mono.error(it)
+        }
     }
 }
