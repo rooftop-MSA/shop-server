@@ -6,6 +6,8 @@ import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import org.rooftop.api.identity.userGetByTokenRes
 import org.rooftop.api.shop.*
 import org.rooftop.shop.infra.MockIdentityServer
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate
@@ -17,6 +19,7 @@ import java.util.stream.IntStream
 @DisplayName("상점 도메인의")
 @ContextConfiguration(classes = [MockIdentityServer::class])
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@EnableAutoConfiguration(exclude = [RedisReactiveAutoConfiguration::class])
 internal class IntegrationTest(
     private val webTestClient: WebTestClient,
     private val mockIdentityServer: MockIdentityServer,

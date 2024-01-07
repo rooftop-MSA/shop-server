@@ -55,4 +55,8 @@ class Product(
         }
     }
 
+    fun increaseQuantity(quantity: Long) {
+        this.quantity += quantity
+    }
+
 }
