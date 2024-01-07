@@ -3,10 +3,12 @@ package org.rooftop.shop.infra.transaction
 import org.rooftop.api.transaction.Transaction
 import org.rooftop.api.transaction.TransactionState
 import org.rooftop.api.transaction.transaction
+import org.rooftop.shop.domain.TransactionJoinedEvent
 import org.rooftop.shop.domain.TransactionPublisher
 import org.rooftop.shop.domain.product.UndoProduct
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.domain.Range
 import org.springframework.data.redis.connection.stream.Record
 import org.springframework.data.redis.core.ReactiveRedisTemplate
@@ -15,6 +17,7 @@ import reactor.core.publisher.Mono
 
 @Service
 class ProductTransactionPublisher(
+    private val eventPublisher: ApplicationEventPublisher,
     @Value("\${distributed.transaction.server.id}") private val transactionServerId: String,
     @Qualifier("transactionServer") private val transactionServer: ReactiveRedisTemplate<String, ByteArray>,
     @Qualifier("undoServer") private val productUndoServer: ReactiveRedisTemplate<String, UndoProduct>,
@@ -23,6 +26,9 @@ class ProductTransactionPublisher(
     override fun join(transactionId: String, state: UndoProduct): Mono<String> {
         return joinOrStartTransaction()
             .undoBeforeState(state)
+            .doOnSuccess {
+                eventPublisher.publishEvent(TransactionJoinedEvent(it))
+            }
             .contextWrite { context ->
                 context.put("transactionId", transactionId)
             }

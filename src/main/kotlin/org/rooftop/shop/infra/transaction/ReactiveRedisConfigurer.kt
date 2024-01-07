@@ -1,5 +1,7 @@
 package org.rooftop.shop.infra.transaction
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.paramnames.ParameterNamesModule
 import org.rooftop.shop.domain.product.UndoProduct
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
@@ -48,7 +50,10 @@ class ReactiveRedisConfigurer(
             StringRedisSerializer()
         )
 
-        val undoProductJacksonSerializer = Jackson2JsonRedisSerializer(UndoProduct::class.java)
+        val objectMapper = ObjectMapper()
+        objectMapper.registerModule(ParameterNamesModule())
+        val undoProductJacksonSerializer =
+            Jackson2JsonRedisSerializer(objectMapper, UndoProduct::class.java)
 
         val context = builder.value(undoProductJacksonSerializer).build()
 
