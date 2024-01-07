@@ -50,7 +50,7 @@ internal class RedisPlayGround(
                         it shouldBeEqualUsingFields transaction {
                             id = expectedTransactionId
                             serverId = TRANSACTION_SERVER_ID
-                            state = TransactionState.JOIN
+                            state = TransactionState.TRANSACTION_STATE_JOIN
                         }
                     }
                     .verifyComplete()
@@ -72,7 +72,7 @@ internal class RedisPlayGround(
                         Record.of<String?, String?, ByteArray?>(mapOf(TRANSACTION_KEY to transaction {
                             id = transactionId
                             serverId = TRANSACTION_SERVER_ID
-                            this.state = TransactionState.JOIN
+                            this.state = TransactionState.TRANSACTION_STATE_JOIN
                         }.toByteArray())).withStreamKey(transactionId)
                     )
             }

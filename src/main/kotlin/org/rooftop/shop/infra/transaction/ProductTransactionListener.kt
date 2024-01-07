@@ -1,7 +1,7 @@
 package org.rooftop.shop.infra.transaction
 
-import org.rooftop.api.transaction.Transaction
 import org.rooftop.api.transaction.TransactionState
+import org.rooftop.api.transaction.Transaction
 import org.rooftop.shop.domain.TransactionJoinedEvent
 import org.rooftop.shop.domain.product.ProductRollbackEvent
 import org.rooftop.shop.domain.product.UndoProduct
@@ -41,7 +41,7 @@ class ProductTransactionListener(
     }
 
     private fun Flux<Transaction>.dispatch(): Flux<Transaction> {
-        return this.filter { it.state == TransactionState.ROLLBACK }
+        return this.filter { it.state == TransactionState.TRANSACTION_STATE_ROLLBACK }
             .flatMap { transaction ->
                 productUndoServer.opsForValue()["PRODUCT:${transaction.id}"]
                     .doOnNext { eventPublisher.publishEvent(ProductRollbackEvent(it)) }
@@ -49,6 +49,7 @@ class ProductTransactionListener(
                     .flatMap {
                         productUndoServer.opsForValue().delete("PRODUCT:${transaction.id}")
                             .map { transaction }
+                            .retry()
                     }
             }
     }

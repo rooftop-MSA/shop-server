@@ -1,7 +1,7 @@
 package org.rooftop.shop.infra.transaction
 
-import org.rooftop.api.transaction.Transaction
 import org.rooftop.api.transaction.TransactionState
+import org.rooftop.api.transaction.Transaction
 import org.rooftop.api.transaction.transaction
 import org.rooftop.shop.domain.TransactionJoinedEvent
 import org.rooftop.shop.domain.TransactionPublisher
@@ -40,7 +40,7 @@ class ProductTransactionPublisher(
                 publishTransaction(transactionId, transaction {
                     id = transactionId
                     serverId = transactionServerId
-                    state = TransactionState.JOIN
+                    state = TransactionState.TRANSACTION_STATE_JOIN
                 })
             }
     }
@@ -71,7 +71,7 @@ class ProductTransactionPublisher(
             .publishTransaction(transaction {
                 id = transactionId
                 serverId = transactionServerId
-                state = TransactionState.COMMIT
+                state = TransactionState.TRANSACTION_STATE_COMMIT
             })
             .contextWrite { it.put("transactionId", transactionId) }
             .map { }
@@ -82,7 +82,7 @@ class ProductTransactionPublisher(
             .publishTransaction(transaction {
                 id = transactionId
                 serverId = transactionServerId
-                state = TransactionState.ROLLBACK
+                state = TransactionState.TRANSACTION_STATE_ROLLBACK
             })
             .contextWrite { it.put("transactionId", transactionId) }
             .map { }
