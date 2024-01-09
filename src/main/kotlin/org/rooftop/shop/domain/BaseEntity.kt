@@ -11,11 +11,11 @@ abstract class BaseEntity(
     @Transient
     private val isNew: Boolean = false,
 
-    @LastModifiedDate
+    @CreatedDate
     @Column("created_at")
     var createdAt: Instant? = null,
 
-    @CreatedDate
+    @LastModifiedDate
     @Column("modified_at")
     var modifiedAt: Instant? = null,
 ) : Persistable<Long> {
