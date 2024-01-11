@@ -3,6 +3,7 @@ package org.rooftop.shop.integration
 import io.kotest.core.annotation.DisplayName
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
+import io.kotest.matchers.equality.shouldBeEqualUsingFields
 import org.rooftop.api.identity.userGetByTokenRes
 import org.rooftop.api.shop.*
 import org.rooftop.shop.infra.MockIdentityServer
@@ -30,7 +31,7 @@ internal class IntegrationTest(
         r2dbcEntityTemplate.clearAll()
     }
 
-    describe("판매자 등록 api는") {
+    describe("판매자 등록 API는") {
         context("가입된 유저가 판매자 등록을 요청 할 경우,") {
 
             mockIdentityServer.enqueue(userGetByTokenRes)
@@ -75,6 +76,23 @@ internal class IntegrationTest(
                 val result = webTestClient.registerProduct(UNAUTHORIZED_TOKEN, productRegisterReq)
 
                 result.expectStatus().isBadRequest
+            }
+        }
+    }
+
+    describe("상품 조회 API는") {
+        context("존재하는 상품의 id를 입력받으면,") {
+            registerSeller(mockIdentityServer, webTestClient)
+            registerProducts(1, mockIdentityServer, webTestClient)
+
+            val expectedProduct = toProductRes(webTestClient.getProducts())
+
+            it("상품 정보를 반환한다.") {
+                val result = webTestClient.getProduct(expectedProduct.id)
+
+                result.expectStatus().isOk
+                    .expectBody(ProductRes::class.java)
+                    .returnResult().responseBody!! shouldBeEqualUsingFields expectedProduct
             }
         }
     }
@@ -231,6 +249,20 @@ internal class IntegrationTest(
                 mockIdentityServer.enqueue(userGetByTokenRes)
                 webTestClient.registerProduct(AUTHORIZED_TOKEN, productRegisterReq)
             }
+        }
+
+        private fun toProductRes(responseSpec: WebTestClient.ResponseSpec): ProductRes {
+            val productInProductsRes = responseSpec.expectBody(ProductsRes::class.java)
+                .returnResult().responseBody!!.getProducts(0)
+
+            return productRes {
+                this.id = productInProductsRes.id
+                this.sellerId = productInProductsRes.sellerId
+                this.quantity = productInProductsRes.quantity
+                this.price = productInProductsRes.price
+                this.title = productInProductsRes.title
+                this.description = productInProductsRes.description
+            };
         }
     }
 }

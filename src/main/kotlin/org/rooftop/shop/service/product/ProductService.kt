@@ -57,6 +57,13 @@ class ProductService(
         return productRepository.findProducts(lastProductId)
     }
 
+    fun getProductById(id: Long): Mono<Product> {
+        return productRepository.findById(id)
+            .switchIfEmpty(
+                Mono.error { throw IllegalArgumentException("Cannot find product by productId \"$id\"") }
+            )
+    }
+
     @Transactional
     fun consumeProduct(productConsumeReq: ProductConsumeReq): Mono<Unit> {
         return transactionPublisher.join(

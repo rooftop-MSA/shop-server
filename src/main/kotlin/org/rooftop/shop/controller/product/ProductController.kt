@@ -29,23 +29,40 @@ class ProductController(
             defaultValue = "0",
             required = false
         ) lastProductId: Long,
-    ): Mono<ProductsRes> = productService.findProducts(lastProductId)
-        .map {
-            ProductsResKt.product {
-                this.id = it.id
-                this.sellerId = it.sellerId
-                this.title = it.title
-                this.description = it.description
-                this.price = it.price
-                this.quantity = it.getQuantity()
+    ): Mono<ProductsRes> {
+        return productService.findProducts(lastProductId)
+            .map {
+                ProductsResKt.product {
+                    this.id = it.id
+                    this.sellerId = it.sellerId
+                    this.title = it.title
+                    this.description = it.description
+                    this.price = it.price
+                    this.quantity = it.getQuantity()
+                }
             }
-        }
-        .collectList()
-        .map {
-            productsRes {
-                this.products.addAll(it)
+            .collectList()
+            .map {
+                productsRes {
+                    this.products.addAll(it)
+                }
             }
-        }
+    }
+
+    @GetMapping("/v1/products/{id}")
+    fun getProductById(@PathVariable("id") id: Long): Mono<ProductRes> {
+        return productService.getProductById(id)
+            .map {
+                productRes {
+                    this.id = it.id
+                    this.sellerId = it.sellerId
+                    this.title = it.title
+                    this.description = it.description
+                    this.price = it.price
+                    this.quantity = it.getQuantity()
+                }
+            }
+    }
 
     @PostMapping("/v1/products/consumes")
     fun consumeProduct(@RequestBody productConsumeReq: ProductConsumeReq): Mono<Unit> =
