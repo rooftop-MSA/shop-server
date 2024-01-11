@@ -92,7 +92,7 @@ internal class IntegrationTest(
 
                 result.expectStatus().isOk
                     .expectBody(ProductRes::class.java)
-                    .returnResult() shouldBeEqualUsingFields expectedProduct
+                    .returnResult().responseBody!! shouldBeEqualUsingFields expectedProduct
             }
         }
     }
