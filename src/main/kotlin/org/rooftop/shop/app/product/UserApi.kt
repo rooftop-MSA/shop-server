@@ -1,4 +1,4 @@
-package org.rooftop.shop.domain
+package org.rooftop.shop.app.product
 
 import reactor.core.publisher.Mono
 

@@ -1,9 +1,7 @@
-package org.rooftop.shop.service.seller
+package org.rooftop.shop.domain.seller
 
+import org.rooftop.shop.app.product.UserApi
 import org.rooftop.shop.domain.IdGenerator
-import org.rooftop.shop.domain.seller.Seller
-import org.rooftop.shop.domain.seller.SellerRepository
-import org.rooftop.shop.domain.UserApi
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Mono
@@ -34,4 +32,6 @@ class SellerService(
             )
             .map { }
     }
+
+    fun findSellerByUserId(userId: Long): Mono<Seller> = sellerRepository.findByUserId(userId)
 }

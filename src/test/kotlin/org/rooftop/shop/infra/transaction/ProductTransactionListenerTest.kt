@@ -4,7 +4,7 @@ import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.annotation.DisplayName
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.equals.shouldBeEqual
-import org.rooftop.shop.domain.TransactionIdGenerator
+import org.rooftop.shop.app.product.TransactionIdGenerator
 import org.rooftop.shop.domain.product.ProductRollbackEvent
 import org.rooftop.shop.domain.product.undoProduct
 import org.springframework.test.context.ContextConfiguration
@@ -19,7 +19,7 @@ import kotlin.time.Duration.Companion.seconds
         ByteArrayRedisSerializer::class,
         ReactiveRedisConfigurer::class,
         TransactionIdGeneratorImpl::class,
-        ProductTransactionPublisher::class,
+        ProductTransactionManager::class,
         ProductTransactionListener::class,
     ]
 )
@@ -27,7 +27,7 @@ import kotlin.time.Duration.Companion.seconds
 internal class ProductTransactionListenerTest(
     private val eventCapture: EventCapture,
     private val transactionIdGenerator: TransactionIdGenerator,
-    private val transactionPublisher: ProductTransactionPublisher,
+    private val transactionPublisher: ProductTransactionManager,
     private val transactionListener: ProductTransactionListener,
 ) : DescribeSpec({
 

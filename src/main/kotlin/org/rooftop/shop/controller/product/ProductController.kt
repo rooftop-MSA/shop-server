@@ -3,7 +3,8 @@ package org.rooftop.shop.controller.product
 import org.rooftop.api.identity.ErrorRes
 import org.rooftop.api.identity.errorRes
 import org.rooftop.api.shop.*
-import org.rooftop.shop.service.product.ProductService
+import org.rooftop.shop.app.product.ProductRegisterFacade
+import org.rooftop.shop.domain.product.ProductService
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
@@ -12,6 +13,7 @@ import reactor.core.publisher.Mono
 @RestController
 class ProductController(
     private val productService: ProductService,
+    private val productRegisterFacade: ProductRegisterFacade,
 ) {
 
     @PostMapping("/v1/products")
@@ -19,7 +21,7 @@ class ProductController(
     fun registerProduct(
         @RequestHeader(HttpHeaders.AUTHORIZATION) token: String,
         @RequestBody productRegisterReq: ProductRegisterReq,
-    ): Mono<Unit> = productService.registerProduct(token, productRegisterReq)
+    ): Mono<Unit> = productRegisterFacade.registerProduct(token, productRegisterReq)
 
     @GetMapping("/v1/products")
     @ResponseStatus(HttpStatus.OK)

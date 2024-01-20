@@ -1,14 +1,11 @@
-package org.rooftop.shop.service
+package org.rooftop.shop.domain.seller
 
 import com.ninjasquad.springmockk.MockkBean
 import io.kotest.core.annotation.DisplayName
 import io.kotest.core.spec.style.DescribeSpec
 import io.mockk.every
 import org.rooftop.shop.domain.IdGenerator
-import org.rooftop.shop.domain.seller.SellerRepository
-import org.rooftop.shop.domain.UserApi
-import org.rooftop.shop.domain.seller.seller
-import org.rooftop.shop.service.seller.SellerService
+import org.rooftop.shop.app.product.UserApi
 import org.springframework.test.context.ContextConfiguration
 import reactor.core.publisher.Mono
 import reactor.test.StepVerifier
