@@ -1,7 +1,7 @@
 package org.rooftop.shop.infra.transaction
 
-import org.rooftop.api.transaction.TransactionState
 import org.rooftop.api.transaction.Transaction
+import org.rooftop.api.transaction.TransactionState
 import org.rooftop.api.transaction.transaction
 import org.rooftop.shop.app.product.TransactionJoinedEvent
 import org.rooftop.shop.app.product.TransactionManager
@@ -67,7 +67,7 @@ class ProductTransactionManager(
     }
 
     override fun commit(transactionId: String): Mono<Unit> {
-        return findOpenedTransaction(transactionId)
+        return exists(transactionId)
             .publishTransaction(transaction {
                 id = transactionId
                 serverId = transactionServerId
@@ -78,7 +78,7 @@ class ProductTransactionManager(
     }
 
     override fun rollback(transactionId: String): Mono<Unit> {
-        return findOpenedTransaction(transactionId)
+        return exists(transactionId)
             .publishTransaction(transaction {
                 id = transactionId
                 serverId = transactionServerId
@@ -88,7 +88,7 @@ class ProductTransactionManager(
             .map { }
     }
 
-    private fun findOpenedTransaction(transactionId: String): Mono<String> {
+    override fun exists(transactionId: String): Mono<String> {
         return transactionServer.opsForStream<String, ByteArray>()
             .range(transactionId, Range.open("-", "+"))
             .map { Transaction.parseFrom(it.value[DATA].toString().toByteArray()) }
@@ -100,6 +100,7 @@ class ProductTransactionManager(
                 }
             )
             .transformTransactionId()
+            .contextWrite { it.put("transactionId", transactionId) }
     }
 
     private fun Mono<String>.publishTransaction(transaction: Transaction): Mono<String> {

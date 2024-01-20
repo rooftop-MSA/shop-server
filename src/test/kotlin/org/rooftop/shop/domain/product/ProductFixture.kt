@@ -1,7 +1,5 @@
 package org.rooftop.shop.domain.product
 
-import org.rooftop.shop.app.product.UndoProduct
-
 fun product(
     id: Long = 1L,
     sellerId: Long = 2L,
@@ -18,12 +16,4 @@ fun product(
     price = price,
     quantity = quantity,
     isNew = isNew
-)
-
-fun undoProduct(
-    id: Long = 1L,
-    consumedQuantity: Long = 2L,
-): UndoProduct = UndoProduct(
-    id,
-    consumedQuantity
 )

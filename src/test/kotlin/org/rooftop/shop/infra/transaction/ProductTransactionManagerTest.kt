@@ -6,7 +6,7 @@ import io.kotest.matchers.equals.shouldBeEqual
 import org.rooftop.shop.app.product.TransactionIdGenerator
 import org.rooftop.shop.app.product.TransactionManager
 import org.rooftop.shop.app.product.UndoProduct
-import org.rooftop.shop.domain.product.undoProduct
+import org.rooftop.shop.domain.app.undoProduct
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.TestPropertySource
 import reactor.test.StepVerifier
@@ -22,7 +22,7 @@ import reactor.test.StepVerifier
     ]
 )
 @TestPropertySource("classpath:application.properties")
-internal class ProductTransactionPublisherTest(
+internal class ProductTransactionManagerTest(
     private val transactionIdGenerator: TransactionIdGenerator,
     private val transactionManager: TransactionManager<UndoProduct>,
 ) : DescribeSpec({
@@ -99,6 +99,35 @@ internal class ProductTransactionPublisherTest(
 
                 StepVerifier.create(result)
                     .verifyErrorMessage("Cannot find opened transaction id \"$transactionId\"")
+            }
+        }
+    }
+
+    describe("exists 메소드는") {
+
+        context("Id에 해당하는 열려있는 트랜잭션이 있으면,") {
+
+            val transactionId = transactionIdGenerator.generate()
+            transactionManager.join(transactionId, undoProduct()).block()
+            
+            it("transactionId를 반환한다.") {
+                val result = transactionManager.exists(transactionId)
+
+                StepVerifier.create(result)
+                    .expectNext(transactionId)
+                    .verifyComplete()
+            }
+        }
+
+        context("Id에 해당하는 열려있는 트랜잭션이 없으면,") {
+
+            val transactionId = transactionIdGenerator.generate()
+
+            it("예외를 던진다.") {
+                val result = transactionManager.exists(transactionId)
+
+                StepVerifier.create(result)
+                    .expectErrorMessage("Cannot find opened transaction id \"$transactionId\"")
             }
         }
     }
