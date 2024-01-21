@@ -1,6 +1,7 @@
 package org.rooftop.shop.app.product
 
 import org.rooftop.api.shop.ProductRegisterReq
+import org.rooftop.api.shop.ProductRegisterRes
 import org.rooftop.shop.domain.product.ProductService
 import org.rooftop.shop.domain.seller.SellerService
 import org.springframework.stereotype.Service
@@ -13,7 +14,7 @@ class ProductRegisterFacade(
     private val productService: ProductService,
 ) {
 
-    fun registerProduct(token: String, productRegisterReq: ProductRegisterReq): Mono<Unit> {
+    fun registerProduct(token: String, productRegisterReq: ProductRegisterReq): Mono<ProductRegisterRes> {
         return userApi.findUserIdByToken(token)
             .switchIfEmpty(
                 Mono.error {
@@ -24,6 +25,6 @@ class ProductRegisterFacade(
             .switchIfEmpty(
                 Mono.error { throw IllegalArgumentException("User not registered seller") }
             )
-            .flatMap { productService.registerProduct(token, it.id, productRegisterReq) }
+            .flatMap { productService.registerProduct(it.id, productRegisterReq) }
     }
 }

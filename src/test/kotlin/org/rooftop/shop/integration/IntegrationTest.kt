@@ -165,7 +165,7 @@ internal class IntegrationTest(
                 .responseBody!!.getProducts(0).id
 
             val productConsumeReq = productConsumeReq {
-                this.transactionId = 1L
+                this.transactionId = "1"
                 this.productId = productId
                 this.consumeQuantity = 100
             }
@@ -188,7 +188,7 @@ internal class IntegrationTest(
                 .responseBody!!.getProducts(0).id
 
             val productConsumeReq = productConsumeReq {
-                this.transactionId = 1L
+                this.transactionId = "1"
                 this.productId = productId
                 this.consumeQuantity = productRegisterReq.quantity + 1
             }

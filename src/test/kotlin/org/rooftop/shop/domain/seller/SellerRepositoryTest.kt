@@ -4,7 +4,7 @@ import io.kotest.core.annotation.DisplayName
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.extensions.spring.SpringExtension
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
-import org.rooftop.shop.infra.R2dbcConfig
+import org.rooftop.shop.domain.R2dbcConfigurer
 import org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest
 import org.springframework.data.r2dbc.config.EnableR2dbcAuditing
 import org.springframework.test.context.ContextConfiguration
@@ -13,7 +13,7 @@ import reactor.test.StepVerifier
 @DataR2dbcTest
 @EnableR2dbcAuditing
 @DisplayName("SellerRepository 클래스의")
-@ContextConfiguration(classes = [R2dbcConfig::class])
+@ContextConfiguration(classes = [R2dbcConfigurer::class])
 internal class SellerRepositoryTest(private val sellerRepository: SellerRepository) : DescribeSpec({
 
     extension(SpringExtension)
