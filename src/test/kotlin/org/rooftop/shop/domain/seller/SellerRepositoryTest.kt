@@ -11,7 +11,6 @@ import org.springframework.test.context.ContextConfiguration
 import reactor.test.StepVerifier
 
 @DataR2dbcTest
-@EnableR2dbcAuditing
 @DisplayName("SellerRepository 클래스의")
 @ContextConfiguration(classes = [R2dbcConfigurer::class])
 internal class SellerRepositoryTest(private val sellerRepository: SellerRepository) : DescribeSpec({

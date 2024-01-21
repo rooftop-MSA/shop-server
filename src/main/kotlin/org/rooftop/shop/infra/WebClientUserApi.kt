@@ -1,7 +1,7 @@
 package org.rooftop.shop.infra
 
 import org.rooftop.api.identity.UserGetByTokenRes
-import org.rooftop.shop.app.product.UserApi
+import org.rooftop.shop.app.UserApi
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatusCode
 import org.springframework.stereotype.Service

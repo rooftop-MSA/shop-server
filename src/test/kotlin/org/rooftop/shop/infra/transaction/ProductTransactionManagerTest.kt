@@ -6,7 +6,7 @@ import io.kotest.matchers.equals.shouldBeEqual
 import org.rooftop.shop.app.product.TransactionIdGenerator
 import org.rooftop.shop.app.product.TransactionManager
 import org.rooftop.shop.app.product.UndoProduct
-import org.rooftop.shop.domain.app.undoProduct
+import org.rooftop.shop.domain.app.product.undoProduct
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.TestPropertySource
 import reactor.test.StepVerifier

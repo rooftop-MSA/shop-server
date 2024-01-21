@@ -2,6 +2,7 @@ package org.rooftop.shop.app.product
 
 import org.rooftop.api.shop.ProductRegisterReq
 import org.rooftop.api.shop.ProductRegisterRes
+import org.rooftop.shop.app.UserApi
 import org.rooftop.shop.domain.product.ProductService
 import org.rooftop.shop.domain.seller.SellerService
 import org.springframework.stereotype.Service
