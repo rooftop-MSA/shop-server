@@ -6,25 +6,34 @@ import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.equality.shouldBeEqualUsingFields
 import org.rooftop.api.identity.userGetByTokenRes
 import org.rooftop.api.shop.*
+import org.rooftop.shop.app.product.TransactionManager
+import org.rooftop.shop.app.product.UndoProduct
+import org.rooftop.shop.domain.app.product.undoProduct
 import org.rooftop.shop.infra.MockIdentityServer
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration
-import org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration
+import org.rooftop.shop.infra.transaction.RedisContainerConfigurer
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.data.r2dbc.config.EnableR2dbcAuditing
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.web.reactive.server.WebTestClient
 import java.util.stream.IntStream
 
+@EnableR2dbcAuditing
 @AutoConfigureWebTestClient
 @DisplayName("상점 도메인의")
-@ContextConfiguration(classes = [MockIdentityServer::class])
+@ContextConfiguration(
+    classes = [
+        MockIdentityServer::class,
+        RedisContainerConfigurer::class,
+    ]
+)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@EnableAutoConfiguration(exclude = [RedisReactiveAutoConfiguration::class])
 internal class IntegrationTest(
     private val webTestClient: WebTestClient,
     private val mockIdentityServer: MockIdentityServer,
     private val r2dbcEntityTemplate: R2dbcEntityTemplate,
+    private val transactionManager: TransactionManager<UndoProduct>,
 ) : DescribeSpec({
 
     afterEach {
@@ -164,11 +173,15 @@ internal class IntegrationTest(
                 .returnResult()
                 .responseBody!!.getProducts(0).id
 
+            val transactionId = "1"
+
             val productConsumeReq = productConsumeReq {
-                this.transactionId = 1L
+                this.transactionId = transactionId
                 this.productId = productId
                 this.consumeQuantity = 100
             }
+
+            transactionManager.join(transactionId, undoProduct()).block()
 
             it("해당 상품 구매에 성공하고 200 OK 를 반환한다.") {
                 val result = webTestClient.consumeProducts(productConsumeReq)
@@ -187,16 +200,35 @@ internal class IntegrationTest(
                 .returnResult()
                 .responseBody!!.getProducts(0).id
 
+            val transactionId = "2"
+
             val productConsumeReq = productConsumeReq {
-                this.transactionId = 1L
+                this.transactionId = transactionId
                 this.productId = productId
                 this.consumeQuantity = productRegisterReq.quantity + 1
             }
+
+            transactionManager.join(transactionId, undoProduct()).block()
 
             it("해당 상품 구매를 실패하고, 400 Bad Request 를 반환한다.") {
                 val result = webTestClient.consumeProducts(productConsumeReq)
 
                 result.expectStatus().isBadRequest
+            }
+        }
+
+        context("tranasctionId에 해당하는 분산 트랜잭션이 열려있지 않다면,") {
+
+            val productConsumeReq = productConsumeReq {
+                this.transactionId = "400"
+                this.productId = productId
+                this.consumeQuantity = productRegisterReq.quantity + 1
+            }
+
+            it("재고차감을 실패하고 500 Internal Server Error 를 반환한다.") {
+                val result = webTestClient.consumeProducts(productConsumeReq)
+
+                result.expectStatus().is5xxServerError
             }
         }
 

@@ -1,10 +1,12 @@
-package org.rooftop.shop.domain
+package org.rooftop.shop.app.product
 
 import reactor.core.publisher.Mono
 
-interface TransactionPublisher<T> {
+interface TransactionManager<T> {
 
     fun join(transactionId: String, state: T): Mono<String>
+
+    fun exists(transactionId: String): Mono<String>
 
     fun commit(transactionId: String): Mono<Unit>
 

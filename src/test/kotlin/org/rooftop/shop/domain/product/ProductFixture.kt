@@ -17,11 +17,3 @@ fun product(
     quantity = quantity,
     isNew = isNew
 )
-
-fun undoProduct(
-    id: Long = 1L,
-    consumedQuantity: Long = 2L,
-): UndoProduct = UndoProduct(
-    id,
-    consumedQuantity
-)

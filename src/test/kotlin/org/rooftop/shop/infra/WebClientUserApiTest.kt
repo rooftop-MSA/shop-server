@@ -3,7 +3,7 @@ package org.rooftop.shop.infra
 import io.kotest.core.annotation.DisplayName
 import io.kotest.core.spec.style.DescribeSpec
 import org.rooftop.api.identity.userGetByTokenRes
-import org.rooftop.shop.domain.UserApi
+import org.rooftop.shop.app.UserApi
 import org.springframework.test.context.ContextConfiguration
 import reactor.test.StepVerifier
 

@@ -2,9 +2,9 @@ package org.rooftop.shop.infra.transaction
 
 import org.rooftop.api.transaction.TransactionState
 import org.rooftop.api.transaction.Transaction
-import org.rooftop.shop.domain.TransactionJoinedEvent
+import org.rooftop.shop.app.product.TransactionJoinedEvent
+import org.rooftop.shop.app.product.UndoProduct
 import org.rooftop.shop.domain.product.ProductRollbackEvent
-import org.rooftop.shop.domain.product.UndoProduct
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.event.EventListener

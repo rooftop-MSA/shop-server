@@ -6,7 +6,7 @@ import io.kotest.matchers.equality.shouldBeEqualUsingFields
 import org.rooftop.api.transaction.Transaction
 import org.rooftop.api.transaction.TransactionState
 import org.rooftop.api.transaction.transaction
-import org.rooftop.shop.domain.product.UndoProduct
+import org.rooftop.shop.app.product.UndoProduct
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.data.domain.Range
 import org.springframework.data.redis.connection.stream.Record

@@ -1,4 +1,4 @@
-package org.rooftop.shop.domain.product
+package org.rooftop.shop.app.product
 
 class UndoProduct(
     val id: Long,
