@@ -25,14 +25,14 @@ class ProductTransactionListener(
     @Qualifier("undoServer") private val productUndoServer: ReactiveRedisTemplate<String, UndoProduct>,
 ) {
 
+    private val options = StreamReceiverOptions.builder()
+        .pollTimeout(Duration.ofMillis(100))
+        .build()
+
+    private val receiver = StreamReceiver.create(connectionFactory, options)
+
     @EventListener(TransactionJoinedEvent::class)
     fun subscribeStream(transactionJoinedEvent: TransactionJoinedEvent) {
-        val options = StreamReceiverOptions.builder()
-            .pollTimeout(Duration.ofMillis(100))
-            .build()
-
-        val receiver = StreamReceiver.create(connectionFactory, options)
-
         receiver.receive(StreamOffset.fromStart(transactionJoinedEvent.transactionId))
             .subscribeOn(Schedulers.boundedElastic())
             .map { Transaction.parseFrom(it.value["data"]?.toByteArray()) }
