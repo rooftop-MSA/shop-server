@@ -14,5 +14,5 @@ create table if not exists product(
   quantity bigint not null check (quantity >= 0),
   version int not null,
   created_at TIMESTAMP(6) not null,
-  modified_at TIMESTAMP(6) not null,
+  modified_at TIMESTAMP(6) not null
 );
