@@ -16,14 +16,12 @@ import org.rooftop.shop.app.product.UndoProduct
 import org.rooftop.shop.domain.product.ProductService
 import org.rooftop.shop.infra.MockIdentityServer
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.data.r2dbc.config.EnableR2dbcAuditing
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.TestPropertySource
 import reactor.core.publisher.Mono
 import reactor.test.StepVerifier
 
 @SpringBootTest
-@EnableR2dbcAuditing
 @DisplayName("ProductConsumeFacade 클래스의")
 @TestPropertySource("classpath:application.properties")
 @ContextConfiguration(classes = [MockIdentityServer::class])
