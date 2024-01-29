@@ -13,13 +13,11 @@ import org.rooftop.shop.infra.MockIdentityServer
 import org.rooftop.shop.infra.transaction.RedisContainerConfigurer
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.data.r2dbc.config.EnableR2dbcAuditing
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.web.reactive.server.WebTestClient
 import java.util.stream.IntStream
 
-@EnableR2dbcAuditing
 @AutoConfigureWebTestClient
 @DisplayName("상점 도메인의")
 @ContextConfiguration(

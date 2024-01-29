@@ -11,6 +11,7 @@ import reactor.test.StepVerifier
 import java.util.stream.LongStream
 
 @DataR2dbcTest
+@EnableR2dbcAuditing
 @DisplayName("ProductRepository 클래스의")
 @ContextConfiguration(classes = [R2dbcConfigurer::class])
 internal class ProductRepositoryTest(
