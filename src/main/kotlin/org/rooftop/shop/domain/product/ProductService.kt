@@ -6,10 +6,14 @@ import org.rooftop.api.shop.ProductRegisterRes
 import org.rooftop.api.shop.productRegisterRes
 import org.rooftop.shop.domain.IdGenerator
 import org.springframework.context.event.EventListener
+import org.springframework.dao.OptimisticLockingFailureException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.util.retry.RetrySpec
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.toJavaDuration
 
 @Service
 @Transactional(readOnly = true)
@@ -68,6 +72,7 @@ class ProductService(
             .flatMap {
                 productRepository.save(it)
             }
+            .retryWhen(optimisticLockingFailureExceptionSpec)
             .map { }
     }
 
@@ -79,7 +84,20 @@ class ProductService(
                 it
             }
             .flatMap { productRepository.save(it) }
+            .retryWhen(jitterSpec)
             .map { }
-            .retry()
+    }
+
+    private companion object Retry {
+        private const val RETRY_MOST_100_PERCENT = 1.0
+
+        private val optimisticLockingFailureExceptionSpec =
+            RetrySpec.fixedDelay(Long.MAX_VALUE, 50.milliseconds.toJavaDuration())
+                .jitter(RETRY_MOST_100_PERCENT)
+                .filter { it is OptimisticLockingFailureException }
+
+        private val jitterSpec =
+            RetrySpec.fixedDelay(Long.MAX_VALUE, 50.milliseconds.toJavaDuration())
+                .jitter(RETRY_MOST_100_PERCENT)
     }
 }
