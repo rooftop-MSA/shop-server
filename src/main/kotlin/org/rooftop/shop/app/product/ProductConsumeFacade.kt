@@ -38,7 +38,7 @@ class ProductConsumeFacade(
     private fun <T> Mono<T>.commitOnSuccess(productConsumeReq: ProductConsumeReq): Mono<T> {
         return this.doOnSuccess {
             transactionManager.commit(productConsumeReq.transactionId.toString())
-                .subscribeOn(Schedulers.boundedElastic())
+                .subscribeOn(Schedulers.parallel())
                 .subscribe()
         }
     }
@@ -46,7 +46,7 @@ class ProductConsumeFacade(
     private fun <T> Mono<T>.rollbackOnError(productConsumeReq: ProductConsumeReq): Mono<T> {
         return this.doOnError {
             transactionManager.rollback(productConsumeReq.transactionId)
-                .subscribeOn(Schedulers.boundedElastic())
+                .subscribeOn(Schedulers.parallel())
                 .subscribe()
             throw it
         }
