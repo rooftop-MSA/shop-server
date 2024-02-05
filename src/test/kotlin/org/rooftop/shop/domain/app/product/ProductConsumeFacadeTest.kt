@@ -9,12 +9,11 @@ import io.mockk.verify
 import org.rooftop.api.shop.productConsumeReq
 import org.rooftop.api.shop.productRegisterReq
 import org.rooftop.api.shop.productRegisterRes
+import org.rooftop.netx.api.TransactionManager
 import org.rooftop.shop.app.product.ProductConsumeFacade
-import org.rooftop.shop.app.product.TransactionIdGenerator
-import org.rooftop.shop.app.product.TransactionManager
-import org.rooftop.shop.app.product.UndoProduct
 import org.rooftop.shop.domain.product.ProductService
-import org.rooftop.shop.infra.MockIdentityServer
+import org.rooftop.shop.integration.MockIdentityServer
+import org.rooftop.shop.integration.RedisContainer
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.TestPropertySource
@@ -24,24 +23,26 @@ import reactor.test.StepVerifier
 @SpringBootTest
 @DisplayName("ProductConsumeFacade 클래스의")
 @TestPropertySource("classpath:application.properties")
-@ContextConfiguration(classes = [MockIdentityServer::class])
+@ContextConfiguration(
+    classes = [
+        MockIdentityServer::class,
+        RedisContainer::class
+    ]
+)
 internal class ProductConsumeFacadeTest(
     private val productService: ProductService,
     private val productConsumeFacade: ProductConsumeFacade,
-    @MockkBean private val transactionIdGenerator: TransactionIdGenerator,
-    @MockkBean private val transactionManager: TransactionManager<UndoProduct>,
+    @MockkBean private val transactionManager: TransactionManager,
 ) : DescribeSpec({
 
     beforeSpec {
         PRODUCT_ID = productService.registerProduct(SELLER_ID, productRegisterReq).block()!!.id
     }
 
-    every { transactionIdGenerator.generate() } returns TRANSACTION_ID
-
     every { transactionManager.exists(TRANSACTION_ID) } returns Mono.just(TRANSACTION_ID)
     every { transactionManager.join(TRANSACTION_ID, any()) } returns Mono.just(TRANSACTION_ID)
-    every { transactionManager.commit(TRANSACTION_ID) } returns Mono.just(Unit)
-    every { transactionManager.rollback(TRANSACTION_ID) } returns Mono.just(Unit)
+    every { transactionManager.commit(TRANSACTION_ID) } returns Mono.just(TRANSACTION_ID)
+    every { transactionManager.rollback(TRANSACTION_ID, any()) } returns Mono.just(TRANSACTION_ID)
 
     describe("consumeProduct 메소드는") {
         context("올바른 productConsumeReq 를 받으면,") {
@@ -62,7 +63,7 @@ internal class ProductConsumeFacadeTest(
                 StepVerifier.create(result)
                     .assertNext {
                         verify(exactly = 1) { transactionManager.commit(TRANSACTION_ID) }
-                        verify(exactly = 0) { transactionManager.rollback(TRANSACTION_ID) }
+                        verify(exactly = 0) { transactionManager.rollback(TRANSACTION_ID, any()) }
                         it shouldBeEqualUsingFields expected
                     }
             }
@@ -81,7 +82,7 @@ internal class ProductConsumeFacadeTest(
                 StepVerifier.create(result)
                     .then {
                         verify(exactly = 0) { transactionManager.commit(TRANSACTION_ID) }
-                        verify(exactly = 1) { transactionManager.rollback(TRANSACTION_ID) }
+                        verify(exactly = 1) { transactionManager.rollback(TRANSACTION_ID, any()) }
                     }
                     .expectError()
             }

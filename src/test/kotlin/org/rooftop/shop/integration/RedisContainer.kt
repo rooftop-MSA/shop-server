@@ -1,4 +1,4 @@
-package org.rooftop.shop.infra.transaction
+package org.rooftop.shop.integration
 
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.core.env.ConfigurableEnvironment
@@ -6,7 +6,7 @@ import org.testcontainers.containers.GenericContainer
 import org.testcontainers.utility.DockerImageName
 
 @TestConfiguration
-class RedisContainerConfigurer(
+class RedisContainer(
     private val environment: ConfigurableEnvironment,
 ) {
 
@@ -17,11 +17,7 @@ class RedisContainerConfigurer(
         redis.start()
 
         System.setProperty(
-            "distributed.transaction.port.undo-server",
-            redis.getMappedPort(6379).toString()
-        )
-        System.setProperty(
-            "distributed.transaction.port.transaction-server",
+            "netx.port",
             redis.getMappedPort(6379).toString()
         )
     }
