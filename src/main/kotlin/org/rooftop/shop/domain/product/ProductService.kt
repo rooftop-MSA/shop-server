@@ -78,9 +78,9 @@ class ProductService(
 
     @EventListener(ProductRollbackEvent::class)
     fun rollbackProduct(productRollbackEvent: ProductRollbackEvent): Mono<Unit> {
-        return productRepository.findById(productRollbackEvent.undoProduct.id)
+        return productRepository.findById(productRollbackEvent.productId)
             .map {
-                it.increaseQuantity(productRollbackEvent.undoProduct.consumedQuantity)
+                it.increaseQuantity(productRollbackEvent.consumeQuantity)
                 it
             }
             .flatMap { productRepository.save(it) }

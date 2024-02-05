@@ -1,4 +1,4 @@
-package org.rooftop.shop.infra
+package org.rooftop.shop.integration
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer

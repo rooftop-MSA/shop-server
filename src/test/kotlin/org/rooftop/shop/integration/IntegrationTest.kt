@@ -6,11 +6,8 @@ import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.equality.shouldBeEqualUsingFields
 import org.rooftop.api.identity.userGetByTokenRes
 import org.rooftop.api.shop.*
-import org.rooftop.shop.app.product.TransactionManager
-import org.rooftop.shop.app.product.UndoProduct
-import org.rooftop.shop.domain.app.product.undoProduct
-import org.rooftop.shop.infra.MockIdentityServer
-import org.rooftop.shop.infra.transaction.RedisContainerConfigurer
+import org.rooftop.netx.api.TransactionManager
+import org.rooftop.shop.Application
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate
@@ -23,7 +20,8 @@ import java.util.stream.IntStream
 @ContextConfiguration(
     classes = [
         MockIdentityServer::class,
-        RedisContainerConfigurer::class,
+        RedisContainer::class,
+        Application::class,
     ]
 )
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -31,7 +29,7 @@ internal class IntegrationTest(
     private val webTestClient: WebTestClient,
     private val mockIdentityServer: MockIdentityServer,
     private val r2dbcEntityTemplate: R2dbcEntityTemplate,
-    private val transactionManager: TransactionManager<UndoProduct>,
+    private val transactionManager: TransactionManager,
 ) : DescribeSpec({
 
     afterEach {
@@ -171,15 +169,13 @@ internal class IntegrationTest(
                 .returnResult()
                 .responseBody!!.getProducts(0).id
 
-            val transactionId = "1"
+            val transactionId = transactionManager.start("").block()!!
 
             val productConsumeReq = productConsumeReq {
                 this.transactionId = transactionId
                 this.productId = productId
                 this.consumeQuantity = 100
             }
-
-            transactionManager.join(transactionId, undoProduct()).block()
 
             it("해당 상품 구매에 성공하고 200 OK 를 반환한다.") {
                 val result = webTestClient.consumeProducts(productConsumeReq)
@@ -198,15 +194,13 @@ internal class IntegrationTest(
                 .returnResult()
                 .responseBody!!.getProducts(0).id
 
-            val transactionId = "2"
+            val transactionId = transactionManager.start("").block()!!
 
             val productConsumeReq = productConsumeReq {
                 this.transactionId = transactionId
                 this.productId = productId
                 this.consumeQuantity = productRegisterReq.quantity + 1
             }
-
-            transactionManager.join(transactionId, undoProduct()).block()
 
             it("해당 상품 구매를 실패하고, 400 Bad Request 를 반환한다.") {
                 val result = webTestClient.consumeProducts(productConsumeReq)
