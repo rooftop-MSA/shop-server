@@ -20,5 +20,10 @@ class RedisContainer(
             "netx.port",
             redis.getMappedPort(6379).toString()
         )
+
+        System.setProperty(
+            "netx.undo.port",
+            redis.getMappedPort(6379).toString()
+        )
     }
 }
