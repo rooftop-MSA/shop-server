@@ -1,19 +1,19 @@
 package org.rooftop.shop.app.product
 
 import org.rooftop.netx.api.TransactionRollbackEvent
+import org.rooftop.netx.api.TransactionRollbackHandler
+import org.rooftop.netx.meta.TransactionHandler
 import org.rooftop.shop.domain.product.ProductRollbackEvent
 import org.springframework.context.ApplicationEventPublisher
-import org.springframework.context.event.EventListener
-import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 
-@Service
+@TransactionHandler
 class TransactionEventHandler(
     private val applicationEventPublisher: ApplicationEventPublisher,
 ) {
 
 
-    @EventListener(TransactionRollbackEvent::class)
+    @TransactionRollbackHandler
     fun handleTransactionRollbackEvent(transactionRollbackEvent: TransactionRollbackEvent): Mono<Unit> {
         return Mono.just(transactionRollbackEvent)
             .map { parseReplayToMap(transactionRollbackEvent.undo) }
