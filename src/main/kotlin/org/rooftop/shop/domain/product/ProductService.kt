@@ -53,21 +53,20 @@ class ProductService(
     }
 
     @Transactional
-    fun consumeProduct(productConsumeReq: ProductConsumeReq): Mono<Unit> {
-        return productRepository.findById(productConsumeReq.productId)
+    fun consumeProduct(productId: Long, consumeQuantity: Long): Mono<Product> {
+        return productRepository.findById(productId)
             .switchIfEmpty(
                 Mono.error {
-                    IllegalStateException("Cannot find product id \"${productConsumeReq.productId}\"")
+                    IllegalStateException("Cannot find product id \"$productId\"")
                 }
             )
             .map {
-                it.consumeQuantity(productConsumeReq.consumeQuantity)
+                it.consumeQuantity(consumeQuantity)
                 it
             }
             .flatMap {
                 productRepository.save(it)
             }
-            .map { }
     }
 
     @Transactional

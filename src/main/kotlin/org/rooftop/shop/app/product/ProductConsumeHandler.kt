@@ -1,0 +1,62 @@
+package org.rooftop.shop.app.product
+
+import org.rooftop.netx.api.TransactionJoinEvent
+import org.rooftop.netx.api.TransactionJoinListener
+import org.rooftop.netx.api.TransactionManager
+import org.rooftop.netx.meta.TransactionHandler
+import org.rooftop.shop.domain.product.Product
+import org.rooftop.shop.domain.product.ProductService
+import org.springframework.dao.OptimisticLockingFailureException
+import reactor.core.publisher.Mono
+import reactor.core.scheduler.Schedulers
+import reactor.util.retry.RetrySpec
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.toJavaDuration
+
+@TransactionHandler
+class ProductConsumeHandler(
+    private val productService: ProductService,
+    private val transactionManager: TransactionManager,
+) {
+
+    @TransactionJoinListener(
+        event = OrderConfirmEvent::class,
+        noRetryFor = [IllegalArgumentException::class],
+    )
+    fun consumeProduct(event: TransactionJoinEvent): Mono<Product> {
+        return Mono.just(event.decodeEvent(OrderConfirmEvent::class))
+            .flatMap { orderConfirmEvent ->
+                productService.consumeProduct(
+                    orderConfirmEvent.productId,
+                    orderConfirmEvent.consumeQuantity,
+                ).retryWhen(optimisticLockingFailureExceptionSpec)
+            }
+            .commitOnSuccess(event)
+            .rollbackOnError(event)
+    }
+
+    private fun <T> Mono<T>.commitOnSuccess(event: TransactionJoinEvent): Mono<T> {
+        return this.doOnSuccess {
+            transactionManager.commit(event.transactionId)
+                .subscribeOn(Schedulers.boundedElastic())
+                .subscribe()
+        }
+    }
+
+    private fun <T> Mono<T>.rollbackOnError(event: TransactionJoinEvent): Mono<T> {
+        return this.doOnError {
+            transactionManager.rollback(
+                event.transactionId, it.message ?: it::class.simpleName!!
+            ).subscribeOn(Schedulers.boundedElastic()).subscribe()
+        }
+    }
+
+    private companion object Retry {
+        private const val RETRY_MOST_100_PERCENT = 1.0
+
+        private val optimisticLockingFailureExceptionSpec =
+            RetrySpec.fixedDelay(Long.MAX_VALUE, 1000.milliseconds.toJavaDuration())
+                .jitter(RETRY_MOST_100_PERCENT)
+                .filter { it is OptimisticLockingFailureException }
+    }
+}

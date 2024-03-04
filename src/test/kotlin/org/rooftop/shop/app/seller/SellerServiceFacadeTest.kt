@@ -1,4 +1,4 @@
-package org.rooftop.shop.domain.app.seller
+package org.rooftop.shop.app.seller
 
 import com.ninjasquad.springmockk.MockkBean
 import io.kotest.core.annotation.DisplayName
