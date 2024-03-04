@@ -1,6 +1,5 @@
 package org.rooftop.shop.domain.product
 
-import org.rooftop.api.shop.ProductConsumeReq
 import org.rooftop.api.shop.ProductRegisterReq
 import org.rooftop.api.shop.ProductRegisterRes
 import org.rooftop.api.shop.productRegisterRes
