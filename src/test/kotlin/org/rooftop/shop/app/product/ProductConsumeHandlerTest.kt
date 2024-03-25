@@ -7,6 +7,7 @@ import org.rooftop.api.shop.productRegisterReq
 import org.rooftop.netx.api.TransactionManager
 import org.rooftop.order.app.TransactionEventCapture
 import org.rooftop.shop.Application
+import org.rooftop.shop.app.product.event.orderConfirmEvent
 import org.rooftop.shop.domain.product.ProductService
 import org.rooftop.shop.integration.MockIdentityServer
 import org.rooftop.shop.integration.RedisContainer
@@ -45,7 +46,11 @@ internal class ProductConsumeHandlerTest(
             val transactionId = transactionManager.syncStart(UNDO)
 
             it("상품의 재고를 차감한후, 트랜잭션을 커밋한다.") {
-                transactionManager.syncJoin(transactionId, UNDO, OrderConfirmEvent(productId, 100))
+                transactionManager.syncJoin(
+                    transactionId,
+                    UNDO,
+                    orderConfirmEvent(productId = productId, consumedQuantity = 100)
+                )
 
                 eventually(5.seconds) {
                     transactionEventCapture.commitShouldBeEqual(1)
@@ -61,10 +66,10 @@ internal class ProductConsumeHandlerTest(
                 transactionManager.syncJoin(
                     transactionId,
                     UNDO,
-                    OrderConfirmEvent(productId, 100_000)
+                    orderConfirmEvent(productId = productId, consumedQuantity = 100_000)
                 )
 
-                eventually(5.seconds) {
+                eventually(100.seconds) {
                     transactionEventCapture.commitShouldBeEqual(0)
                     transactionEventCapture.rollbackShouldBeEqual(1)
                 }

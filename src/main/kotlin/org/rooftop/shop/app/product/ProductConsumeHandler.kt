@@ -4,6 +4,7 @@ import org.rooftop.netx.api.TransactionJoinEvent
 import org.rooftop.netx.api.TransactionJoinListener
 import org.rooftop.netx.api.TransactionManager
 import org.rooftop.netx.meta.TransactionHandler
+import org.rooftop.shop.app.product.event.PayCancelEvent
 import org.rooftop.shop.domain.product.Product
 import org.rooftop.shop.domain.product.ProductService
 import org.springframework.dao.OptimisticLockingFailureException
@@ -45,9 +46,13 @@ class ProductConsumeHandler(
 
     private fun <T> Mono<T>.rollbackOnError(event: TransactionJoinEvent): Mono<T> {
         return this.doOnError {
+            val orderConfirmEvent = event.decodeEvent(OrderConfirmEvent::class)
             transactionManager.rollback(
-                event.transactionId, it.message ?: it::class.simpleName!!
-            ).subscribeOn(Schedulers.boundedElastic()).subscribe()
+                transactionId = event.transactionId,
+                cause = it.message ?: it::class.simpleName!!,
+                event = PayCancelEvent(orderConfirmEvent.payId, orderConfirmEvent.productId)
+            ).subscribeOn(Schedulers.boundedElastic())
+                .subscribe()
         }
     }
 

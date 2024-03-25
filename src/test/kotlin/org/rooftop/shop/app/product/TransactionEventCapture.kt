@@ -1,9 +1,13 @@
 package org.rooftop.order.app
 
 import io.kotest.matchers.equals.shouldBeEqual
-import org.rooftop.netx.api.*
-import org.rooftop.netx.idl.TransactionState
+import org.rooftop.netx.api.TransactionCommitEvent
+import org.rooftop.netx.api.TransactionCommitListener
+import org.rooftop.netx.api.TransactionRollbackEvent
+import org.rooftop.netx.api.TransactionRollbackListener
+import org.rooftop.netx.engine.core.TransactionState
 import org.rooftop.netx.meta.TransactionHandler
+import org.rooftop.shop.app.product.event.PayCancelEvent
 import reactor.core.publisher.Mono
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -17,26 +21,27 @@ class TransactionEventCapture {
     }
 
     fun commitShouldBeEqual(count: Int) {
-        (events.get(TransactionState.TRANSACTION_STATE_COMMIT)?.get() ?: 0) shouldBeEqual count
+        (events[TransactionState.COMMIT]?.get() ?: 0) shouldBeEqual count
     }
 
     fun rollbackShouldBeEqual(count: Int) {
-        (events.get(TransactionState.TRANSACTION_STATE_ROLLBACK)?.get() ?: 0) shouldBeEqual count
+        (events[TransactionState.ROLLBACK]?.get() ?: 0) shouldBeEqual count
     }
 
     @TransactionCommitListener
-    fun handleTransactionJoinEvent(transactionCommitEvent: TransactionCommitEvent): Mono<Int> {
+    fun handleCommitEvent(transactionCommitEvent: TransactionCommitEvent): Mono<Int> {
         return Mono.fromCallable {
-            events.putIfAbsent(TransactionState.TRANSACTION_STATE_COMMIT, AtomicInteger(0))
-            events.get(TransactionState.TRANSACTION_STATE_COMMIT)!!.incrementAndGet()
+            events.putIfAbsent(TransactionState.COMMIT, AtomicInteger(0))
+            events[TransactionState.COMMIT]!!.incrementAndGet()
         }
     }
 
     @TransactionRollbackListener
     fun handleRollbackEvent(transactionRollbackEvent: TransactionRollbackEvent): Mono<Int> {
+        println(">>> $transactionRollbackEvent")
         return Mono.fromCallable {
-            events.putIfAbsent(TransactionState.TRANSACTION_STATE_ROLLBACK, AtomicInteger(0))
-            events.get(TransactionState.TRANSACTION_STATE_ROLLBACK)!!.incrementAndGet()
+            events.putIfAbsent(TransactionState.ROLLBACK, AtomicInteger(0))
+            events[TransactionState.ROLLBACK]!!.incrementAndGet()
         }
     }
 }
