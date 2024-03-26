@@ -20,10 +20,7 @@ class ProductConsumeHandler(
     private val transactionManager: TransactionManager,
 ) {
 
-    @TransactionJoinListener(
-        event = OrderConfirmEvent::class,
-        noRetryFor = [IllegalArgumentException::class],
-    )
+    @TransactionJoinListener(event = OrderConfirmEvent::class)
     fun consumeProduct(event: TransactionJoinEvent): Mono<Product> {
         return Mono.just(event.decodeEvent(OrderConfirmEvent::class))
             .flatMap { orderConfirmEvent ->
@@ -34,6 +31,12 @@ class ProductConsumeHandler(
             }
             .commitOnSuccess(event)
             .rollbackOnError(event)
+            .onErrorResume {
+                if (it::class == IllegalArgumentException::class) {
+                    return@onErrorResume Mono.empty()
+                }
+                throw it
+            }
     }
 
     private fun <T> Mono<T>.commitOnSuccess(event: TransactionJoinEvent): Mono<T> {
