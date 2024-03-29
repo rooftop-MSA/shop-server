@@ -43,10 +43,10 @@ internal class ProductConsumeHandlerTest(
     describe("consumeProduct 메소드는") {
         context("올바른 productConsumeReq 를 받으면,") {
 
-            val transactionId = transactionManager.syncStart(UNDO)
+            val transactionId = transactionManager.syncStart()
 
             it("상품의 재고를 차감한후, 트랜잭션을 커밋한다.") {
-                transactionManager.syncJoin(
+                transactionManager.syncCommit(
                     transactionId,
                     orderConfirmEvent(productId = productId, consumedQuantity = 100)
                 )
@@ -59,16 +59,16 @@ internal class ProductConsumeHandlerTest(
         }
 
         context("남은 수량보다 더 많은 수를 차감하려 한다면,") {
-            val transactionId = transactionManager.syncStart(UNDO)
+            val transactionId = transactionManager.syncStart()
 
             it("rollback을 호출한다.") {
-                transactionManager.syncJoin(
+                transactionManager.syncCommit(
                     transactionId,
                     orderConfirmEvent(productId = productId, consumedQuantity = 100_000)
                 )
 
                 eventually(100.seconds) {
-                    transactionEventCapture.commitShouldBeEqual(0)
+                    transactionEventCapture.commitShouldBeEqual(1)
                     transactionEventCapture.rollbackShouldBeEqual(1)
                 }
 
@@ -78,7 +78,6 @@ internal class ProductConsumeHandlerTest(
 }) {
 
     private companion object {
-        private const val UNDO = "UNDO"
         private const val SELLER_ID = 2L
 
         private var productId: Long = 0

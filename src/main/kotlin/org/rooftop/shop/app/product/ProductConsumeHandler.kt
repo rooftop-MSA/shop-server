@@ -1,8 +1,7 @@
 package org.rooftop.shop.app.product
 
-import org.rooftop.netx.api.SuccessWith
-import org.rooftop.netx.api.TransactionJoinEvent
-import org.rooftop.netx.api.TransactionJoinListener
+import org.rooftop.netx.api.TransactionCommitEvent
+import org.rooftop.netx.api.TransactionCommitListener
 import org.rooftop.netx.meta.TransactionHandler
 import org.rooftop.shop.app.product.event.PayCancelEvent
 import org.rooftop.shop.domain.product.Product
@@ -18,11 +17,8 @@ class ProductConsumeHandler(
     private val productService: ProductService,
 ) {
 
-    @TransactionJoinListener(
-        event = OrderConfirmEvent::class,
-        successWith = SuccessWith.PUBLISH_COMMIT,
-    )
-    fun consumeProduct(event: TransactionJoinEvent): Mono<Product> {
+    @TransactionCommitListener(event = OrderConfirmEvent::class)
+    fun consumeProduct(event: TransactionCommitEvent): Mono<Product> {
         return Mono.just(event.decodeEvent(OrderConfirmEvent::class))
             .flatMap { orderConfirmEvent ->
                 productService.consumeProduct(
@@ -33,7 +29,7 @@ class ProductConsumeHandler(
             .rollbackOnError(event)
     }
 
-    private fun <T> Mono<T>.rollbackOnError(event: TransactionJoinEvent): Mono<T> {
+    private fun <T> Mono<T>.rollbackOnError(event: TransactionCommitEvent): Mono<T> {
         return this.doOnError {
             val orderConfirmEvent = event.decodeEvent(OrderConfirmEvent::class)
             val payCancelEvent = PayCancelEvent(
