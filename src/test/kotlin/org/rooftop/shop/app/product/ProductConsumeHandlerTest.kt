@@ -48,7 +48,6 @@ internal class ProductConsumeHandlerTest(
             it("상품의 재고를 차감한후, 트랜잭션을 커밋한다.") {
                 transactionManager.syncJoin(
                     transactionId,
-                    UNDO,
                     orderConfirmEvent(productId = productId, consumedQuantity = 100)
                 )
 
@@ -65,7 +64,6 @@ internal class ProductConsumeHandlerTest(
             it("rollback을 호출한다.") {
                 transactionManager.syncJoin(
                     transactionId,
-                    UNDO,
                     orderConfirmEvent(productId = productId, consumedQuantity = 100_000)
                 )
 
