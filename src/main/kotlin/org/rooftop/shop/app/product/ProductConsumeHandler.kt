@@ -35,7 +35,7 @@ class ProductConsumeHandler(
             val payCancelEvent = PayCancelEvent(
                 orderConfirmEvent.payId,
                 orderConfirmEvent.userId,
-                orderConfirmEvent.productId,
+                orderConfirmEvent.orderId,
                 orderConfirmEvent.totalPrice,
             )
             event.setNextEvent(payCancelEvent)
