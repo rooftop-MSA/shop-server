@@ -6,7 +6,6 @@ import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.equality.shouldBeEqualUsingFields
 import org.rooftop.api.identity.userGetByTokenRes
 import org.rooftop.api.shop.*
-import org.rooftop.netx.api.TransactionManager
 import org.rooftop.shop.Application
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
@@ -29,7 +28,6 @@ internal class IntegrationTest(
     private val webTestClient: WebTestClient,
     private val mockIdentityServer: MockIdentityServer,
     private val r2dbcEntityTemplate: R2dbcEntityTemplate,
-    private val transactionManager: TransactionManager,
 ) : DescribeSpec({
 
     afterEach {

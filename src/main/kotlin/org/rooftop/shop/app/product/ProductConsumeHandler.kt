@@ -1,8 +1,8 @@
 package org.rooftop.shop.app.product
 
-import org.rooftop.netx.api.TransactionCommitEvent
-import org.rooftop.netx.api.TransactionCommitListener
-import org.rooftop.netx.meta.TransactionHandler
+import org.rooftop.netx.api.SagaCommitEvent
+import org.rooftop.netx.api.SagaCommitListener
+import org.rooftop.netx.meta.SagaHandler
 import org.rooftop.shop.app.product.event.PayCancelEvent
 import org.rooftop.shop.domain.product.Product
 import org.rooftop.shop.domain.product.ProductService
@@ -12,13 +12,13 @@ import reactor.util.retry.RetrySpec
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.toJavaDuration
 
-@TransactionHandler
+@SagaHandler
 class ProductConsumeHandler(
     private val productService: ProductService,
 ) {
 
-    @TransactionCommitListener(event = OrderConfirmEvent::class)
-    fun consumeProduct(event: TransactionCommitEvent): Mono<Product> {
+    @SagaCommitListener(event = OrderConfirmEvent::class)
+    fun consumeProduct(event: SagaCommitEvent): Mono<Product> {
         return Mono.just(event.decodeEvent(OrderConfirmEvent::class))
             .flatMap { orderConfirmEvent ->
                 productService.consumeProduct(
@@ -29,7 +29,7 @@ class ProductConsumeHandler(
             .rollbackOnError(event)
     }
 
-    private fun <T> Mono<T>.rollbackOnError(event: TransactionCommitEvent): Mono<T> {
+    private fun <T> Mono<T>.rollbackOnError(event: SagaCommitEvent): Mono<T> {
         return this.doOnError {
             val orderConfirmEvent = event.decodeEvent(OrderConfirmEvent::class)
             val payCancelEvent = PayCancelEvent(

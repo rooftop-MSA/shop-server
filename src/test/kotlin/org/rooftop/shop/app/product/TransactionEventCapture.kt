@@ -1,15 +1,15 @@
-package org.rooftop.order.app
+package org.rooftop.shop.app.product
 
 import io.kotest.matchers.equals.shouldBeEqual
-import org.rooftop.netx.api.TransactionCommitEvent
-import org.rooftop.netx.api.TransactionCommitListener
-import org.rooftop.netx.api.TransactionRollbackEvent
-import org.rooftop.netx.api.TransactionRollbackListener
-import org.rooftop.netx.meta.TransactionHandler
+import org.rooftop.netx.api.SagaCommitEvent
+import org.rooftop.netx.api.SagaCommitListener
+import org.rooftop.netx.api.SagaRollbackEvent
+import org.rooftop.netx.api.SagaRollbackListener
+import org.rooftop.netx.meta.SagaHandler
 import reactor.core.publisher.Mono
 import java.util.concurrent.atomic.AtomicInteger
 
-@TransactionHandler
+@SagaHandler
 class TransactionEventCapture {
 
     val events = mutableMapOf<String, AtomicInteger>()
@@ -26,16 +26,16 @@ class TransactionEventCapture {
         (events["ROLLBACK"]?.get() ?: 0) shouldBeEqual count
     }
 
-    @TransactionCommitListener
-    fun handleCommitEvent(transactionCommitEvent: TransactionCommitEvent): Mono<Int> {
+    @SagaCommitListener
+    fun handleCommitEvent(sagaCommitEvent: SagaCommitEvent): Mono<Int> {
         return Mono.fromCallable {
             events.putIfAbsent("COMMIT", AtomicInteger(0))
             events["COMMIT"]!!.incrementAndGet()
         }
     }
 
-    @TransactionRollbackListener
-    fun handleRollbackEvent(transactionRollbackEvent: TransactionRollbackEvent): Mono<Int> {
+    @SagaRollbackListener
+    fun handleRollbackEvent(sagaRollbackEvent: SagaRollbackEvent): Mono<Int> {
         return Mono.fromCallable {
             events.putIfAbsent("ROLLBACK", AtomicInteger(0))
             events["ROLLBACK"]!!.incrementAndGet()

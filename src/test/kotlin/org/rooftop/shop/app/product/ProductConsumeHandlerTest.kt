@@ -4,8 +4,7 @@ import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.annotation.DisplayName
 import io.kotest.core.spec.style.DescribeSpec
 import org.rooftop.api.shop.productRegisterReq
-import org.rooftop.netx.api.TransactionManager
-import org.rooftop.order.app.TransactionEventCapture
+import org.rooftop.netx.api.SagaManager
 import org.rooftop.shop.Application
 import org.rooftop.shop.app.product.event.orderConfirmEvent
 import org.rooftop.shop.domain.product.ProductService
@@ -28,7 +27,7 @@ import kotlin.time.Duration.Companion.seconds
 @TestPropertySource("classpath:application.properties")
 internal class ProductConsumeHandlerTest(
     private val productService: ProductService,
-    private val transactionManager: TransactionManager,
+    private val sagaManager: SagaManager,
     private val transactionEventCapture: TransactionEventCapture,
 ) : DescribeSpec({
 
@@ -43,10 +42,10 @@ internal class ProductConsumeHandlerTest(
     describe("consumeProduct 메소드는") {
         context("올바른 productConsumeReq 를 받으면,") {
 
-            val transactionId = transactionManager.syncStart()
+            val transactionId = sagaManager.syncStart()
 
-            it("상품의 재고를 차감한후, 트랜잭션을 커밋한다.") {
-                transactionManager.syncCommit(
+            it("상품의 재고를 차감한후, 사가를 커밋한다.") {
+                sagaManager.syncCommit(
                     transactionId,
                     orderConfirmEvent(productId = productId, consumedQuantity = 100)
                 )
@@ -59,10 +58,10 @@ internal class ProductConsumeHandlerTest(
         }
 
         context("남은 수량보다 더 많은 수를 차감하려 한다면,") {
-            val transactionId = transactionManager.syncStart()
+            val transactionId = sagaManager.syncStart()
 
             it("rollback을 호출한다.") {
-                transactionManager.syncCommit(
+                sagaManager.syncCommit(
                     transactionId,
                     orderConfirmEvent(productId = productId, consumedQuantity = 100_000)
                 )
