@@ -42,10 +42,10 @@ internal class ProductConsumeHandlerTest(
     describe("consumeProduct 메소드는") {
         context("올바른 productConsumeReq 를 받으면,") {
 
-            val transactionId = sagaManager.syncStart()
+            val transactionId = sagaManager.startSync()
 
             it("상품의 재고를 차감한후, 사가를 커밋한다.") {
-                sagaManager.syncCommit(
+                sagaManager.commitSync(
                     transactionId,
                     orderConfirmEvent(productId = productId, consumedQuantity = 100)
                 )
@@ -58,10 +58,10 @@ internal class ProductConsumeHandlerTest(
         }
 
         context("남은 수량보다 더 많은 수를 차감하려 한다면,") {
-            val transactionId = sagaManager.syncStart()
+            val transactionId = sagaManager.startSync()
 
             it("rollback을 호출한다.") {
-                sagaManager.syncCommit(
+                sagaManager.commitSync(
                     transactionId,
                     orderConfirmEvent(productId = productId, consumedQuantity = 100_000)
                 )
